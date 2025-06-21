@@ -4,7 +4,7 @@ namespace Ecommerce.App.Models
 {
     public class Product
     {
-        public int Id { get; set; }
+        public int Id { get; init; }
         
         [Required]
         [StringLength(100)]
@@ -24,41 +24,41 @@ namespace Ecommerce.App.Models
         
         public string? ImageUrl { get; set; }
         
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
         
         public bool IsActive { get; set; } = true;
         
         // Foreign Keys
         [Required]
-        public string SellerId { get; set; } = string.Empty;
+        public string SellerId { get; init; } = string.Empty;
         
         [Required]
         public int CategoryId { get; set; }
         
         // Navigation Properties
-        public ApplicationUser Seller { get; set; } = null!;
-        public Category Category { get; set; } = null!;
+        public ApplicationUser Seller { get; init; } = null!;
+        public Category Category { get; init; } = null!;
     }
     
     public class Category
     {
-        public int Id { get; set; }
+        public int Id { get; init; }
         
         [Required]
         [StringLength(50)]
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; init; } = string.Empty;
         
         [StringLength(200)]
-        public string? Description { get; set; }
+        public string? Description { get; init; }
         
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
         
         // Foreign Key
         [Required]
-        public string SellerId { get; set; } = string.Empty;
+        public string SellerId { get; init; } = string.Empty;
         
         // Navigation Properties
-        public ApplicationUser Seller { get; set; } = null!;
-        public ICollection<Product> Products { get; set; } = new List<Product>();
+        public ApplicationUser Seller { get; init; } = null!;
+        public ICollection<Product> Products { get; init; } = new List<Product>();
     }
 }

@@ -28,14 +28,14 @@
             <EditForm Model="Input" OnValidSubmit="LoginAsync" FormName="LoginForm" class="space-y-6">
                 <DataAnnotationsValidator />
                 
-                @if (!string.IsNullOrEmpty(errorMessage))
+                @if (!string.IsNullOrEmpty(_errorMessage))
                 {
                     <div class="bg-red-50 border border-red-200 rounded-2xl p-4 shadow-sm">
                         <div class="flex">
                             <svg class="h-5 w-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p class="ml-3 text-sm text-red-800">@errorMessage</p>
+                            <p class="ml-3 text-sm text-red-800">@_errorMessage</p>
                         </div>
                     </div>
                 }
@@ -101,7 +101,7 @@
 </div>
 
 @code {
-    private string errorMessage = string.Empty;
+    private string _errorMessage = string.Empty;
 
     [SupplyParameterFromForm]
     private LoginViewModel Input { get; set; } = new();
@@ -117,7 +117,7 @@
         }
         else
         {
-            errorMessage = "Email o contraseña incorrectos.";
+            _errorMessage = "Email o contraseña incorrectos.";
         }
     }
 }

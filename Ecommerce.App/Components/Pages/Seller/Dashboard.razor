@@ -1,5 +1,5 @@
 @page "/seller/dashboard"
-@layout Components.Layout.MainLayout
+@layout Layout.MainLayout
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using Ecommerce.App.Models
@@ -7,6 +7,7 @@
 @using Ecommerce.App.ViewModels
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Data.SqlClient
 @inject IServiceProvider ServiceProvider
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
@@ -157,6 +158,17 @@
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         transform: translateY(-1px);
     }
+    .warning-card {
+        background-color: #fffbeb;
+        border: 1px solid #fed7aa;
+        border-radius: 1rem;
+        padding: 1rem;
+        color: #92400e;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
 
     .btn-danger {
         background-color: #ef4444;
@@ -294,15 +306,10 @@
         color: #166534;
     }
 
-    .status-pill.inactive {
-        background-color: #fee2e2;
-        color: #991b1b;
-    }
-
 </style>
 
 <div class="dashboard-container">
-@if (currentUser?.UserType != UserType.Seller)
+@if (_currentUser?.UserType != UserType.Seller)
 {
     <div class="flex items-center justify-center min-h-screen px-4">
         <div class="card text-center max-w-md">
@@ -322,12 +329,11 @@ else
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto space-y-6">
 
-            <!-- Header -->
             <div class="card">
                 <div class="card-header">
                     <div>
                         <h1 class="card-title">Dashboard de Vendedor</h1>
-                        <p class="card-subtitle">Bienvenido, <span class="text-dark font-medium">@currentUser.FullName</span></p>
+                        <p class="card-subtitle">Bienvenido, <span class="text-dark font-medium">@_currentUser.FullName</span></p>
                     </div>
                     <div class="icon-circle">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,7 +343,6 @@ else
                 </div>
             </div>
 
-            <!-- Estadísticas -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="stats-card">
                     <div class="icon-circle mx-auto mb-3">
@@ -345,7 +350,7 @@ else
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                         </svg>
                     </div>
-                    <h3 class="stats-value">@products.Count</h3>
+                    <h3 class="stats-value">@_products.Count</h3>
                     <p class="stats-label">Productos</p>
                 </div>
                 <div class="stats-card">
@@ -354,7 +359,7 @@ else
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
                     </div>
-                    <h3 class="stats-value">@categories.Count</h3>
+                    <h3 class="stats-value">@_categories.Count</h3>
                     <p class="stats-label">Categorías</p>
                 </div>
                 <div class="stats-card">
@@ -363,12 +368,11 @@ else
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="stats-value">@products.Where(p => p.Stock > 0).Count()</h3>
+                    <h3 class="stats-value">@_products.Count(p => p.Stock > 0)</h3>
                     <p class="stats-label">En Stock</p>
                 </div>
             </div>
 
-            <!-- Acciones Rápidas -->
             <div class="card">
                 <h2 class="text-lg font-bold text-dark mb-4">Acciones Rápidas</h2>
                 <div class="flex flex-col sm:flex-row gap-3">
@@ -387,28 +391,27 @@ else
                 </div>
             </div>
 
-            <!-- Crear Categoría -->
-            @if (showCreateCategory)
+            @if (_showCreateCategory)
             {
                 <div class="card">
                     <h3 class="text-lg font-bold text-dark mb-4">Crear Nueva Categoría</h3>
-                    <EditForm Model="newCategory" OnValidSubmit="CreateCategory" FormName="CreateCategoryForm" class="space-y-4">
+                    <EditForm Model="_newCategory" OnValidSubmit="CreateCategory" FormName="CreateCategoryForm" class="space-y-4">
                         <DataAnnotationsValidator />
-                        @if (!string.IsNullOrEmpty(categoryErrorMessage))
+                        @if (!string.IsNullOrEmpty(_categoryErrorMessage))
                         {
                             <div class="error-card">
-                                <p>@categoryErrorMessage</p>
+                                <p>@_categoryErrorMessage</p>
                             </div>
                         }
                         <div>
                             <label class="form-label">Nombre:</label>
-                            <InputText @bind-Value="newCategory.Name" class="form-input" />
-                            <ValidationMessage For="@(() => newCategory.Name)" class="form-error" />
+                            <InputText @bind-Value="_newCategory.Name" class="form-input" />
+                            <ValidationMessage For="@(() => _newCategory.Name)" class="form-error" />
                         </div>
                         <div>
                             <label class="form-label">Descripción:</label>
-                            <InputTextArea @bind-Value="newCategory.Description" class="form-input" />
-                            <ValidationMessage For="@(() => newCategory.Description)" class="form-error" />
+                            <InputTextArea @bind-Value="_newCategory.Description" class="form-input" />
+                            <ValidationMessage For="@(() => _newCategory.Description)" class="form-error" />
                         </div>
                         <div class="flex gap-3">
                             <button type="submit" class="btn-main">Crear</button>
@@ -418,57 +421,56 @@ else
                 </div>
             }
 
-            <!-- Crear Producto -->
-            @if (showCreateProduct)
+            @if (_showCreateProduct)
             {
                 <div class="card">
                     <h3 class="text-lg font-bold text-dark mb-4">Crear Nuevo Producto</h3>
-                    <EditForm Model="newProduct" OnValidSubmit="CreateProduct" FormName="CreateProductForm" class="space-y-4">
+                    <EditForm Model="_newProduct" OnValidSubmit="CreateProduct" FormName="CreateProductForm" class="space-y-4">
                         <DataAnnotationsValidator />
-                        @if (!string.IsNullOrEmpty(productErrorMessage))
+                        @if (!string.IsNullOrEmpty(_productErrorMessage))
                         {
                             <div class="error-card">
-                                <p>@productErrorMessage</p>
+                                <p>@_productErrorMessage</p>
                             </div>
                         }
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="form-label">Nombre:</label>
-                                <InputText @bind-Value="newProduct.Name" class="form-input" />
-                                <ValidationMessage For="@(() => newProduct.Name)" class="form-error" />
+                                <InputText @bind-Value="_newProduct.Name" class="form-input" />
+                                <ValidationMessage For="@(() => _newProduct.Name)" class="form-error" />
                             </div>
                             <div>
                                 <label class="form-label">Categoría:</label>
-                                <InputSelect @bind-Value="newProduct.CategoryId" class="form-input">
+                                <InputSelect @bind-Value="_newProduct.CategoryId" class="form-input">
                                     <option value="0">Seleccionar categoría</option>
-                                    @foreach (var category in categories)
+                                    @foreach (var category in _categories)
                                     {
                                         <option value="@category.Id">@category.Name</option>
                                     }
                                 </InputSelect>
-                                <ValidationMessage For="@(() => newProduct.CategoryId)" class="form-error" />
+                                <ValidationMessage For="@(() => _newProduct.CategoryId)" class="form-error" />
                             </div>
                         </div>
                         <div>
                             <label class="form-label">Descripción:</label>
-                            <InputTextArea @bind-Value="newProduct.Description" class="form-input" />
-                            <ValidationMessage For="@(() => newProduct.Description)" class="form-error" />
+                            <InputTextArea @bind-Value="_newProduct.Description" class="form-input" />
+                            <ValidationMessage For="@(() => _newProduct.Description)" class="form-error" />
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="form-label">Precio:</label>
-                                <InputNumber @bind-Value="newProduct.Price" class="form-input" />
-                                <ValidationMessage For="@(() => newProduct.Price)" class="form-error" />
+                                <InputNumber @bind-Value="_newProduct.Price" class="form-input" />
+                                <ValidationMessage For="@(() => _newProduct.Price)" class="form-error" />
                             </div>
                             <div>
                                 <label class="form-label">Stock:</label>
-                                <InputNumber @bind-Value="newProduct.Stock" class="form-input" />
-                                <ValidationMessage For="@(() => newProduct.Stock)" class="form-error" />
+                                <InputNumber @bind-Value="_newProduct.Stock" class="form-input" />
+                                <ValidationMessage For="@(() => _newProduct.Stock)" class="form-error" />
                             </div>
                         </div>
                         <div>
                             <label class="form-label">URL de imagen (opcional):</label>
-                            <InputText @bind-Value="newProduct.ImageUrl" class="form-input" />
+                            <InputText @bind-Value="_newProduct.ImageUrl" class="form-input" />
                         </div>
                         <div class="flex gap-3">
                             <button type="submit" class="btn-main">Crear</button>
@@ -478,64 +480,63 @@ else
                 </div>
             }
 
-            <!-- Editar Producto -->
-            @if (showEditProduct)
+            @if (_showEditProduct)
             {
                 <div class="card">
                     <h3 class="text-lg font-bold text-dark mb-4">Editar Producto</h3>
-                    <EditForm Model="editProduct" OnValidSubmit="UpdateProduct" FormName="EditProductForm" class="space-y-4">
+                    <EditForm Model="_editProduct" OnValidSubmit="UpdateProduct" FormName="EditProductForm" class="space-y-4">
                         <DataAnnotationsValidator />
-                        @if (!string.IsNullOrEmpty(productErrorMessage))
+                        @if (!string.IsNullOrEmpty(_productErrorMessage))
                         {
                             <div class="error-card">
-                                <p>@productErrorMessage</p>
+                                <p>@_productErrorMessage</p>
                             </div>
                         }
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="form-label">Nombre:</label>
-                                <InputText @bind-Value="editProduct.Name" class="form-input" />
-                                <ValidationMessage For="@(() => editProduct.Name)" class="form-error" />
+                                <InputText @bind-Value="_editProduct.Name" class="form-input" />
+                                <ValidationMessage For="@(() => _editProduct.Name)" class="form-error" />
                             </div>
                             <div>
                                 <label class="form-label">Categoría:</label>
-                                <InputSelect @bind-Value="editProduct.CategoryId" class="form-input">
+                                <InputSelect @bind-Value="_editProduct.CategoryId" class="form-input">
                                     <option value="0">Seleccionar categoría</option>
-                                    @foreach (var category in categories)
+                                    @foreach (var category in _categories)
                                     {
                                         <option value="@category.Id">@category.Name</option>
                                     }
                                 </InputSelect>
-                                <ValidationMessage For="@(() => editProduct.CategoryId)" class="form-error" />
+                                <ValidationMessage For="@(() => _editProduct.CategoryId)" class="form-error" />
                             </div>
                         </div>
                         <div>
                             <label class="form-label">Descripción:</label>
-                            <InputTextArea @bind-Value="editProduct.Description" class="form-input" />
-                            <ValidationMessage For="@(() => editProduct.Description)" class="form-error" />
+                            <InputTextArea @bind-Value="_editProduct.Description" class="form-input" />
+                            <ValidationMessage For="@(() => _editProduct.Description)" class="form-error" />
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="form-label">Precio:</label>
-                                <InputNumber @bind-Value="editProduct.Price" class="form-input" />
-                                <ValidationMessage For="@(() => editProduct.Price)" class="form-error" />
+                                <InputNumber @bind-Value="_editProduct.Price" class="form-input" />
+                                <ValidationMessage For="@(() => _editProduct.Price)" class="form-error" />
                             </div>
                             <div>
                                 <label class="form-label">Stock:</label>
-                                <InputNumber @bind-Value="editProduct.Stock" class="form-input" />
-                                <ValidationMessage For="@(() => editProduct.Stock)" class="form-error" />
+                                <InputNumber @bind-Value="_editProduct.Stock" class="form-input" />
+                                <ValidationMessage For="@(() => _editProduct.Stock)" class="form-error" />
                             </div>
                             <div>
                                 <label class="form-label">Estado:</label>
                                 <div class="flex items-center px-3 py-2 border border-[#BFBFBF] rounded-xl bg-white/70 backdrop-blur-sm">
-                                    <InputCheckbox @bind-Value="editProduct.IsActive" class="mr-2" />
+                                    <InputCheckbox @bind-Value="_editProduct.IsActive" class="mr-2" />
                                     <span class="text-sm text-dark">Activo</span>
                                 </div>
                             </div>
                         </div>
                         <div>
                             <label class="form-label">URL de imagen (opcional):</label>
-                            <InputText @bind-Value="editProduct.ImageUrl" class="form-input" />
+                            <InputText @bind-Value="_editProduct.ImageUrl" class="form-input" />
                         </div>
                         <div class="flex gap-3">
                             <button type="submit" class="btn-main">Actualizar</button>
@@ -545,10 +546,9 @@ else
                 </div>
             }
 
-            <!-- Lista de Categorías -->
             <div class="card">
                 <h3 class="text-lg font-bold text-dark mb-4">Mis Categorías</h3>
-                @if (categories.Any())
+                @if (_categories.Any())
                 {
                     <div class="overflow-x-auto">
                         <table class="table">
@@ -562,7 +562,7 @@ else
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var category in categories)
+                                @foreach (var category in _categories)
                                 {
                                     <tr>
                                         <td class="td-bold">@category.Name</td>
@@ -598,11 +598,21 @@ else
                     </div>
                 }
             </div>
-
-            <!-- Lista de Productos -->
+            @if (!string.IsNullOrEmpty(_productErrorMessage))
+            {
+                <div class="warning-card mb-4">
+                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <div>
+                        <p class="font-medium">Advertencia</p>
+                        <p>@_productErrorMessage</p>
+                    </div>
+                </div>
+            }
             <div class="card">
                 <h3 class="text-lg font-bold text-dark mb-4">Mis Productos</h3>
-                @if (products.Any())
+                @if (_products.Any())
                 {
                     <div class="overflow-x-auto">
                         <table class="table">
@@ -618,7 +628,7 @@ else
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var product in products)
+                                @foreach (var product in _products)
                                 {
                                     <tr>
                                         <td>
@@ -680,19 +690,19 @@ else
 </div>
 
 @code {
-    private ApplicationUser? currentUser;
-    private List<Product> products = new();
-    private List<Category> categories = new();
+    private ApplicationUser? _currentUser;
+    private List<Product> _products = new();
+    private List<Category> _categories = new();
 
-    private bool showCreateCategory = false;
-    private bool showCreateProduct = false;
-    private bool showEditProduct = false;
-    private CreateCategoryViewModel newCategory = new();
-    private CreateProductViewModel newProduct = new();
-    private EditProductViewModel editProduct = new();
+    private bool _showCreateCategory;
+    private bool _showCreateProduct;
+    private bool _showEditProduct;
+    private CreateCategoryViewModel _newCategory = new();
+    private CreateProductViewModel _newProduct = new();
+    private EditProductViewModel _editProduct = new();
 
-    private string categoryErrorMessage = string.Empty;
-    private string productErrorMessage = string.Empty;
+    private string _categoryErrorMessage = string.Empty;
+    private string _productErrorMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -702,9 +712,9 @@ else
         {
             using var scope = ServiceProvider.CreateScope();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            currentUser = await userManager.GetUserAsync(authState.User);
+            _currentUser = await userManager.GetUserAsync(authState.User);
 
-            if (currentUser?.UserType == UserType.Seller)
+            if (_currentUser?.UserType == UserType.Seller)
             {
                 await LoadData();
             }
@@ -717,19 +727,19 @@ else
 
     private async Task LoadData()
     {
-        if (currentUser == null) return;
+        if (_currentUser == null) return;
 
         using var scope = ServiceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        categories = await dbContext.Categories
-            .Where(c => c.SellerId == currentUser.Id)
+        _categories = await dbContext.Categories
+            .Where(c => c.SellerId == _currentUser.Id)
             .Include(c => c.Products)
             .OrderBy(c => c.Name)
             .ToListAsync();
 
-        products = await dbContext.Products
-            .Where(p => p.SellerId == currentUser.Id)
+        _products = await dbContext.Products
+            .Where(p => p.SellerId == _currentUser.Id)
             .Include(p => p.Category)
             .OrderBy(p => p.Name)
             .ToListAsync();
@@ -737,21 +747,21 @@ else
 
     private void ShowCreateCategory()
     {
-        showCreateCategory = true;
-        newCategory = new CreateCategoryViewModel();
-        categoryErrorMessage = string.Empty;
+        _showCreateCategory = true;
+        _newCategory = new CreateCategoryViewModel();
+        _categoryErrorMessage = string.Empty;
     }
 
     private void CancelCreateCategory()
     {
-        showCreateCategory = false;
-        newCategory = new CreateCategoryViewModel();
-        categoryErrorMessage = string.Empty;
+        _showCreateCategory = false;
+        _newCategory = new CreateCategoryViewModel();
+        _categoryErrorMessage = string.Empty;
     }
 
     private async Task CreateCategory()
     {
-        if (currentUser == null) return;
+        if (_currentUser == null) return;
 
         try
         {
@@ -759,19 +769,19 @@ else
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             var existingCategory = await dbContext.Categories
-                .FirstOrDefaultAsync(c => c.SellerId == currentUser.Id && c.Name == newCategory.Name);
+                .FirstOrDefaultAsync(c => c.SellerId == _currentUser.Id && c.Name == _newCategory.Name);
 
             if (existingCategory != null)
             {
-                categoryErrorMessage = "Ya tienes una categoría con ese nombre.";
+                _categoryErrorMessage = "Ya tienes una categoría con ese nombre.";
                 return;
             }
 
             var category = new Category
             {
-                Name = newCategory.Name,
-                Description = newCategory.Description,
-                SellerId = currentUser.Id
+                Name = _newCategory.Name,
+                Description = _newCategory.Description,
+                SellerId = _currentUser.Id
             };
 
             dbContext.Categories.Add(category);
@@ -782,7 +792,7 @@ else
         }
         catch (Exception)
         {
-            categoryErrorMessage = "Error al crear la categoría.";
+            _categoryErrorMessage = "Error al crear la categoría.";
         }
     }
 
@@ -803,36 +813,36 @@ else
         }
         catch (Exception)
         {
-            categoryErrorMessage = "Error al eliminar la categoría.";
+            _categoryErrorMessage = "Error al eliminar la categoría.";
         }
     }
 
     private void ShowCreateProduct()
     {
-        if (!categories.Any())
+        if (!_categories.Any())
         {
-            productErrorMessage = "Primero debes crear al menos una categoría.";
+            _productErrorMessage = "Primero debes crear al menos una categoría.";
             return;
         }
 
-        showCreateProduct = true;
-        showEditProduct = false;
-        newProduct = new CreateProductViewModel();
-        productErrorMessage = string.Empty;
+        _showCreateProduct = true;
+        _showEditProduct = false;
+        _newProduct = new CreateProductViewModel();
+        _productErrorMessage = string.Empty;
     }
 
     private void CancelCreateProduct()
     {
-        showCreateProduct = false;
-        newProduct = new CreateProductViewModel();
-        productErrorMessage = string.Empty;
+        _showCreateProduct = false;
+        _newProduct = new CreateProductViewModel();
+        _productErrorMessage = string.Empty;
     }
 
     private void ShowEditProductForm(Product product)
     {
-        showEditProduct = true;
-        showCreateProduct = false;
-        editProduct = new EditProductViewModel
+        _showEditProduct = true;
+        _showCreateProduct = false;
+        _editProduct = new EditProductViewModel
         {
             Id = product.Id,
             Name = product.Name,
@@ -843,19 +853,19 @@ else
             ImageUrl = product.ImageUrl,
             IsActive = product.IsActive
         };
-        productErrorMessage = string.Empty;
+        _productErrorMessage = string.Empty;
     }
 
     private void CancelEditProduct()
     {
-        showEditProduct = false;
-        editProduct = new EditProductViewModel();
-        productErrorMessage = string.Empty;
+        _showEditProduct = false;
+        _editProduct = new EditProductViewModel();
+        _productErrorMessage = string.Empty;
     }
 
     private async Task CreateProduct()
     {
-        if (currentUser == null) return;
+        if (_currentUser == null) return;
 
         try
         {
@@ -864,13 +874,13 @@ else
 
             var product = new Product
             {
-                Name = newProduct.Name,
-                Description = newProduct.Description,
-                Price = newProduct.Price,
-                Stock = newProduct.Stock,
-                CategoryId = newProduct.CategoryId,
-                ImageUrl = newProduct.ImageUrl,
-                SellerId = currentUser.Id
+                Name = _newProduct.Name,
+                Description = _newProduct.Description,
+                Price = _newProduct.Price,
+                Stock = _newProduct.Stock,
+                CategoryId = _newProduct.CategoryId,
+                ImageUrl = _newProduct.ImageUrl,
+                SellerId = _currentUser.Id
             };
 
             dbContext.Products.Add(product);
@@ -881,29 +891,29 @@ else
         }
         catch (Exception)
         {
-            productErrorMessage = "Error al crear el producto.";
+            _productErrorMessage = "Error al crear el producto.";
         }
     }
 
     private async Task UpdateProduct()
     {
-        if (currentUser == null) return;
+        if (_currentUser == null) return;
 
         try
         {
             using var scope = ServiceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            var product = await dbContext.Products.FindAsync(editProduct.Id);
-            if (product != null && product.SellerId == currentUser.Id)
+            var product = await dbContext.Products.FindAsync(_editProduct.Id);
+            if (product != null && product.SellerId == _currentUser.Id)
             {
-                product.Name = editProduct.Name;
-                product.Description = editProduct.Description;
-                product.Price = editProduct.Price;
-                product.Stock = editProduct.Stock;
-                product.CategoryId = editProduct.CategoryId;
-                product.ImageUrl = editProduct.ImageUrl;
-                product.IsActive = editProduct.IsActive;
+                product.Name = _editProduct.Name;
+                product.Description = _editProduct.Description;
+                product.Price = _editProduct.Price;
+                product.Stock = _editProduct.Stock;
+                product.CategoryId = _editProduct.CategoryId;
+                product.ImageUrl = _editProduct.ImageUrl;
+                product.IsActive = _editProduct.IsActive;
 
                 await dbContext.SaveChangesAsync();
                 await LoadData();
@@ -912,30 +922,63 @@ else
         }
         catch (Exception)
         {
-            productErrorMessage = "Error al actualizar el producto.";
+            _productErrorMessage = "Error al actualizar el producto.";
         }
     }
 
     private async Task DeleteProduct(Product product)
+{
+    try
     {
-        try
-        {
-            using var scope = ServiceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        using var scope = ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            var productToDelete = await dbContext.Products.FindAsync(product.Id);
-            if (productToDelete != null)
-            {
-                dbContext.Products.Remove(productToDelete);
-                await dbContext.SaveChangesAsync();
-                await LoadData();
-            }
-        }
-        catch (Exception)
+        // Verificar si el producto está en carritos de compra
+        var cartItemsCount = await dbContext.CartItems
+            .Where(ci => ci.ProductId == product.Id)
+            .CountAsync();
+
+        // Verificar si el producto está en listas de deseos
+        var wishlistItemsCount = await dbContext.WishlistItems
+            .Where(wi => wi.ProductId == product.Id)
+            .CountAsync();
+
+        if (cartItemsCount > 0 || wishlistItemsCount > 0)
         {
-            productErrorMessage = "Error al eliminar el producto.";
+            var references = new List<string>();
+            if (cartItemsCount > 0) references.Add($"{cartItemsCount} carrito(s) de compra");
+            if (wishlistItemsCount > 0) references.Add($"{wishlistItemsCount} lista(s) de deseos");
+
+            _productErrorMessage = $"No se puede eliminar el producto '{product.Name}' porque está siendo usado en: {string.Join(" y ", references)}. " +
+                                 "Primero desactívalo para que no aparezca en la tienda.";
+            return;
+        }
+
+        var productToDelete = await dbContext.Products.FindAsync(product.Id);
+        if (productToDelete != null)
+        {
+            dbContext.Products.Remove(productToDelete);
+            await dbContext.SaveChangesAsync();
+            await LoadData();
+            
+            // Limpiar mensaje de error si la eliminación fue exitosa
+            _productErrorMessage = string.Empty;
         }
     }
+    catch (DbUpdateException ex) 
+        when (ex.InnerException is SqlException sqlEx && sqlEx.Number == 547)
+    {
+        // Error de constraint de integridad referencial
+        _productErrorMessage = $"No se puede eliminar el producto '{product.Name}' porque está siendo usado por otros usuarios. " +
+                             "Considera desactivarlo en lugar de eliminarlo.";
+    }
+    catch (Exception ex)
+    {
+        // Log del error completo para debugging
+        Console.WriteLine($"Error al eliminar producto: {ex.Message}");
+        _productErrorMessage = $"Error al eliminar el producto '{product.Name}'. Intenta nuevamente.";
+    }
+}
 
     private async Task ToggleProductStatus(Product product)
     {
@@ -954,7 +997,7 @@ else
         }
         catch (Exception)
         {
-            productErrorMessage = "Error al cambiar el estado del producto.";
+            _productErrorMessage = "Error al cambiar el estado del producto.";
         }
     }
 }

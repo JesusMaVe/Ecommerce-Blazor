@@ -1,5 +1,5 @@
 @page "/wishlist"
-@layout Components.Layout.MainLayout
+@layout Layout.MainLayout
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using Ecommerce.App.Models
@@ -212,16 +212,6 @@
         font-weight: 600;
     }
 
-    .stock-indicator.in-stock {
-        background-color: #22c55e;
-        color: white;
-    }
-
-    .stock-indicator.out-of-stock {
-        background-color: #ef4444;
-        color: white;
-    }
-
     .product-info {
         padding: 1.5rem;
     }
@@ -423,22 +413,22 @@
             <p class="wishlist-subtitle">CreatorMarket</p>
         </div>
 
-        @if (isLoading)
+        @if (_isLoading)
         {
             <div class="loading-card">
                 <p class="loading-text">Cargando lista de deseos...</p>
             </div>
         }
-        else if (wishlistItems.Any())
+        else if (_wishlistItems.Any())
         {
             <!-- Actions Bar -->
             <div class="wishlist-actions">
-                <p class="items-count">@wishlistItems.Count productos guardados</p>
+                <p class="items-count">@_wishlistItems.Count productos guardados</p>
                 <div class="action-buttons">
                     <button @onclick="AddAllToCart" 
                             class="btn-add-all"
-                            disabled="@isProcessing">
-                        @if (isProcessing)
+                            disabled="@_isProcessing">
+                        @if (_isProcessing)
                         {
                             <span>Agregando...</span>
                         }
@@ -455,7 +445,7 @@
 
             <!-- Wishlist Grid -->
             <div class="wishlist-grid">
-                @foreach (var item in wishlistItems)
+                @foreach (var item in _wishlistItems)
                 {
                     <div class="wishlist-item">
                         <!-- Product Image -->
@@ -514,8 +504,8 @@
                                 {
                                     <button @onclick="() => AddToCart(item)" 
                                             class="btn-add-to-cart"
-                                            disabled="@(isAddingToCart && selectedProductId == item.Product.Id)">
-                                        @if (isAddingToCart && selectedProductId == item.Product.Id)
+                                            disabled="@(_isAddingToCart && _selectedProductId == item.Product.Id)">
+                                        @if (_isAddingToCart && _selectedProductId == item.Product.Id)
                                         {
                                             <span>Agregando...</span>
                                         }
@@ -565,31 +555,31 @@
         }
 
         <!-- Notifications -->
-        @if (!string.IsNullOrEmpty(successMessage))
+        @if (!string.IsNullOrEmpty(_successMessage))
         {
             <div class="notification success">
-                ✓ @successMessage
+                ✓ @_successMessage
             </div>
         }
         
-        @if (!string.IsNullOrEmpty(errorMessage))
+        @if (!string.IsNullOrEmpty(_errorMessage))
         {
             <div class="notification error">
-                ⚠ @errorMessage
+                ⚠ @_errorMessage
             </div>
         }
     </div>
 </div>
 
 @code {
-    private ApplicationUser? currentUser;
-    private List<WishlistItem> wishlistItems = new();
-    private bool isLoading = true;
-    private bool isAddingToCart = false;
-    private bool isProcessing = false;
-    private int selectedProductId = 0;
-    private string successMessage = string.Empty;
-    private string errorMessage = string.Empty;
+    private ApplicationUser? _currentUser;
+    private List<WishlistItem> _wishlistItems = new();
+    private bool _isLoading = true;
+    private bool _isAddingToCart;
+    private bool _isProcessing;
+    private int _selectedProductId;
+    private string _successMessage = string.Empty;
+    private string _errorMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -598,9 +588,9 @@
         {
             using var scope = ServiceProvider.CreateScope();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            currentUser = await userManager.GetUserAsync(authState.User);
+            _currentUser = await userManager.GetUserAsync(authState.User);
             
-            if (currentUser != null)
+            if (_currentUser != null)
             {
                 await LoadWishlistItems();
             }
@@ -610,32 +600,32 @@
             Navigation.NavigateTo("/login");
         }
         
-        isLoading = false;
+        _isLoading = false;
     }
 
     private async Task LoadWishlistItems()
     {
-        if (currentUser == null) return;
+        if (_currentUser == null) return;
 
         using var scope = ServiceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        wishlistItems = await dbContext.WishlistItems
+        _wishlistItems = await dbContext.WishlistItems
             .Include(w => w.Product)
                 .ThenInclude(p => p.Category)
             .Include(w => w.Product)
                 .ThenInclude(p => p.Seller)
-            .Where(w => w.UserId == currentUser.Id)
+            .Where(w => w.UserId == _currentUser.Id)
             .OrderByDescending(w => w.CreatedAt)
             .ToListAsync();
     }
 
     private async Task AddToCart(WishlistItem item)
     {
-        if (currentUser == null) return;
+        if (_currentUser == null) return;
 
-        isAddingToCart = true;
-        selectedProductId = item.Product.Id;
+        _isAddingToCart = true;
+        _selectedProductId = item.Product.Id;
 
         try
         {
@@ -644,7 +634,7 @@
 
             // Verificar si ya está en el carrito
             var existingCartItem = await dbContext.CartItems
-                .FirstOrDefaultAsync(c => c.UserId == currentUser.Id && c.ProductId == item.Product.Id);
+                .FirstOrDefaultAsync(c => c.UserId == _currentUser.Id && c.ProductId == item.Product.Id);
 
             if (existingCartItem != null)
             {
@@ -658,7 +648,7 @@
                 // Agregar nuevo item al carrito
                 var cartItem = new CartItem
                 {
-                    UserId = currentUser.Id,
+                    UserId = _currentUser.Id,
                     ProductId = item.Product.Id,
                     Quantity = 1
                 };
@@ -674,16 +664,16 @@
         }
         finally
         {
-            isAddingToCart = false;
-            selectedProductId = 0;
+            _isAddingToCart = false;
+            _selectedProductId = 0;
         }
     }
 
     private async Task AddAllToCart()
     {
-        if (currentUser == null || !wishlistItems.Any()) return;
+        if (_currentUser == null || !_wishlistItems.Any()) return;
 
-        isProcessing = true;
+        _isProcessing = true;
         var addedCount = 0;
         var errorCount = 0;
 
@@ -692,13 +682,13 @@
             using var scope = ServiceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            foreach (var item in wishlistItems.Where(w => w.Product.Stock > 0))
+            foreach (var item in _wishlistItems.Where(w => w.Product.Stock > 0))
             {
                 try
                 {
                     // Verificar si ya está en el carrito
                     var existingCartItem = await dbContext.CartItems
-                        .FirstOrDefaultAsync(c => c.UserId == currentUser.Id && c.ProductId == item.Product.Id);
+                        .FirstOrDefaultAsync(c => c.UserId == _currentUser.Id && c.ProductId == item.Product.Id);
 
                     if (existingCartItem != null)
                     {
@@ -711,7 +701,7 @@
                         // Agregar nuevo item al carrito
                         var cartItem = new CartItem
                         {
-                            UserId = currentUser.Id,
+                            UserId = _currentUser.Id,
                             ProductId = item.Product.Id,
                             Quantity = 1
                         };
@@ -744,7 +734,7 @@
         }
         finally
         {
-            isProcessing = false;
+            _isProcessing = false;
         }
     }
 
@@ -761,7 +751,7 @@
                 dbContext.WishlistItems.Remove(wishlistItem);
                 await dbContext.SaveChangesAsync();
                 
-                wishlistItems.Remove(item);
+                _wishlistItems.Remove(item);
                 ShowSuccessMessage($"Eliminado de lista de deseos: {item.Product.Name}");
                 StateHasChanged();
             }
@@ -774,26 +764,26 @@
 
     private void ShowSuccessMessage(string message)
     {
-        successMessage = message;
-        errorMessage = string.Empty;
+        _successMessage = message;
+        _errorMessage = string.Empty;
         StateHasChanged();
         
         Task.Delay(3000).ContinueWith(_ =>
         {
-            successMessage = string.Empty;
+            _successMessage = string.Empty;
             InvokeAsync(StateHasChanged);
         });
     }
 
     private void ShowErrorMessage(string message)
     {
-        errorMessage = message;
-        successMessage = string.Empty;
+        _errorMessage = message;
+        _successMessage = string.Empty;
         StateHasChanged();
         
         Task.Delay(3000).ContinueWith(_ =>
         {
-            errorMessage = string.Empty;
+            _errorMessage = string.Empty;
             InvokeAsync(StateHasChanged);
         });
     }

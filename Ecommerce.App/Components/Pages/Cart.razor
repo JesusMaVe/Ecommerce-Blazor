@@ -1,5 +1,5 @@
 @page "/cart"
-@layout Components.Layout.MainLayout
+@layout Layout.MainLayout
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using Ecommerce.App.Models
@@ -493,7 +493,7 @@
             <p class="cart-subtitle">CreatorMarket</p>
         </div>
 
-        @if (isLoading)
+        @if (_isLoading)
         {
             <div class="loading-card">
                 <div class="loading-icon">
@@ -504,15 +504,15 @@
                 <p class="text-[#737373] text-lg">Cargando carrito...</p>
             </div>
         }
-        else if (cartItems.Any())
+        else if (_cartItems.Any())
         {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 cart-grid">
                 <!-- Items del Carrito -->
                 <div class="lg:col-span-2">
                     <div class="cart-items-card">
-                        <h2 class="cart-items-title">Productos en tu carrito (@cartItems.Count items)</h2>
+                        <h2 class="cart-items-title">Productos en tu carrito (@_cartItems.Count items)</h2>
                         
-                        @foreach (var item in cartItems)
+                        @foreach (var item in _cartItems)
                         {
                             <div class="cart-item">
                                 <!-- Imagen del producto -->
@@ -579,16 +579,16 @@
                         
                         <div>
                             <div class="summary-row">
-                                <span class="summary-label">Subtotal (@totalItems items):</span>
-                                <span class="summary-value">$@subtotal.ToString("N2")</span>
+                                <span class="summary-label">Subtotal (@TotalItems items):</span>
+                                <span class="summary-value">$@Subtotal.ToString("N2")</span>
                             </div>
                             
                             <div class="summary-row">
                                 <span class="summary-label">Envío:</span>
-                                <span class="summary-value">@(subtotal >= 100 ? "GRATIS" : "$15.00")</span>
+                                <span class="summary-value">@(Subtotal >= 100 ? "GRATIS" : "$15.00")</span>
                             </div>
                             
-                            @if (subtotal >= 100)
+                            @if (Subtotal >= 100)
                             {
                                 <div class="shipping-notice free">
                                     ✓ Envío gratuito en pedidos superiores a $100
@@ -597,7 +597,7 @@
                             else
                             {
                                 <div class="shipping-notice threshold">
-                                    Agrega $@((100 - subtotal).ToString("N2")) más para envío gratuito
+                                    Agrega $@((100 - Subtotal).ToString("N2")) más para envío gratuito
                                 </div>
                             }
                             
@@ -605,13 +605,13 @@
                             
                             <div class="summary-total">
                                 <span>Total:</span>
-                                <span>$@total.ToString("N2")</span>
+                                <span>$@Total.ToString("N2")</span>
                             </div>
                         </div>
                         
                         <button @onclick="ProceedToCheckout" 
-                                class="btn-checkout @(!cartItems.Any() ? "opacity-50 cursor-not-allowed" : "")"
-                                disabled="@(!cartItems.Any())">
+                                class="btn-checkout @(!_cartItems.Any() ? "opacity-50 cursor-not-allowed" : "")"
+                                disabled="@(!_cartItems.Any())">
                             Proceder al pago
                         </button>
                         
@@ -646,26 +646,26 @@
         }
 
         <!-- Mensajes de notificación -->
-        @if (!string.IsNullOrEmpty(successMessage))
+        @if (!string.IsNullOrEmpty(_successMessage))
         {
             <div class="notification success">
                 <div class="notification-content">
                     <svg class="notification-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    @successMessage
+                    @_successMessage
                 </div>
             </div>
         }
         
-        @if (!string.IsNullOrEmpty(errorMessage))
+        @if (!string.IsNullOrEmpty(_errorMessage))
         {
             <div class="notification error">
                 <div class="notification-content">
                     <svg class="notification-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                     </svg>
-                    @errorMessage
+                    @_errorMessage
                 </div>
             </div>
         }
@@ -673,17 +673,16 @@
 </div>
 
 @code {
-    private ApplicationUser? currentUser;
-    private List<CartItem> cartItems = new();
-    private bool isLoading = true;
-    private string successMessage = string.Empty;
-    private string errorMessage = string.Empty;
+    private ApplicationUser? _currentUser;
+    private List<CartItem> _cartItems = new();
+    private bool _isLoading = true;
+    private string _successMessage = string.Empty;
+    private string _errorMessage = string.Empty;
     
-    // Calculados
-    private int totalItems => cartItems.Sum(c => c.Quantity);
-    private decimal subtotal => cartItems.Sum(c => c.Product.Price * c.Quantity);
-    private decimal shippingCost => subtotal >= 100 ? 0 : 15;
-    private decimal total => subtotal + shippingCost;
+    private int TotalItems => _cartItems.Sum(c => c.Quantity);
+    private decimal Subtotal => _cartItems.Sum(c => c.Product.Price * c.Quantity);
+    private decimal ShippingCost => Subtotal >= 100 ? 0 : 15;
+    private decimal Total => Subtotal + ShippingCost;
 
     protected override async Task OnInitializedAsync()
     {
@@ -692,9 +691,9 @@
         {
             using var scope = ServiceProvider.CreateScope();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            currentUser = await userManager.GetUserAsync(authState.User);
+            _currentUser = await userManager.GetUserAsync(authState.User);
             
-            if (currentUser != null)
+            if (_currentUser != null)
             {
                 await LoadCartItems();
             }
@@ -704,22 +703,22 @@
             Navigation.NavigateTo("/login");
         }
         
-        isLoading = false;
+        _isLoading = false;
     }
 
     private async Task LoadCartItems()
     {
-        if (currentUser == null) return;
+        if (_currentUser == null) return;
 
         using var scope = ServiceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        cartItems = await dbContext.CartItems
+        _cartItems = await dbContext.CartItems
             .Include(c => c.Product)
                 .ThenInclude(p => p.Category)
             .Include(c => c.Product)
                 .ThenInclude(p => p.Seller)
-            .Where(c => c.UserId == currentUser.Id)
+            .Where(c => c.UserId == _currentUser.Id)
             .OrderBy(c => c.CreatedAt)
             .ToListAsync();
     }
@@ -795,7 +794,7 @@
                 dbContext.CartItems.Remove(cartItem);
                 await dbContext.SaveChangesAsync();
                 
-                cartItems.Remove(item);
+                _cartItems.Remove(item);
                 ShowSuccessMessage($"Producto eliminado del carrito: {item.Product.Name}");
                 StateHasChanged();
             }
@@ -808,7 +807,7 @@
 
     private async Task ClearCart()
     {
-        if (!cartItems.Any()) return;
+        if (!_cartItems.Any()) return;
 
         try
         {
@@ -816,13 +815,13 @@
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             
             var userCartItems = await dbContext.CartItems
-                .Where(c => c.UserId == currentUser!.Id)
+                .Where(c => c.UserId == _currentUser!.Id)
                 .ToListAsync();
                 
             dbContext.CartItems.RemoveRange(userCartItems);
             await dbContext.SaveChangesAsync();
             
-            cartItems.Clear();
+            _cartItems.Clear();
             ShowSuccessMessage("Carrito vaciado completamente");
             StateHasChanged();
         }
@@ -840,26 +839,26 @@
 
     private void ShowSuccessMessage(string message)
     {
-        successMessage = message;
-        errorMessage = string.Empty;
+        _successMessage = message;
+        _errorMessage = string.Empty;
         StateHasChanged();
         
         Task.Delay(3000).ContinueWith(_ =>
         {
-            successMessage = string.Empty;
+            _successMessage = string.Empty;
             InvokeAsync(StateHasChanged);
         });
     }
 
     private void ShowErrorMessage(string message)
     {
-        errorMessage = message;
-        successMessage = string.Empty;
+        _errorMessage = message;
+        _successMessage = string.Empty;
         StateHasChanged();
         
         Task.Delay(3000).ContinueWith(_ =>
         {
-            errorMessage = string.Empty;
+            _errorMessage = string.Empty;
             InvokeAsync(StateHasChanged);
         });
     }

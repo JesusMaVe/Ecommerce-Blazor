@@ -1,5 +1,5 @@
 @page "/products"
-@layout Components.Layout.MainLayout
+@layout Layout.MainLayout
 @using Microsoft.EntityFrameworkCore
 @using Ecommerce.App.Models
 @using Ecommerce.App.Data
@@ -162,6 +162,22 @@
         transition: all 0.3s ease-in-out;
     }
 
+    .btn-disabled {
+        background-color: #e5e7eb;
+        color: #6b7280;
+        cursor: not-allowed;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    }
+
+    .btn-disabled:hover {
+        transform: none;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    }
     .product-card:hover {
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         transform: translateY(-4px);
@@ -392,15 +408,15 @@
             <div class="filters-grid">
                 <div class="filter-group">
                     <label class="filter-label">Buscar:</label>
-                    <input type="text" @bind="searchTerm" @bind:event="oninput" 
+                    <input type="text" @bind="SearchTerm" @bind:event="oninput" 
                            placeholder="Nombre del producto..." class="filter-input" />
                 </div>
                 
                 <div class="filter-group">
                     <label class="filter-label">Categoría:</label>
-                    <select @bind="selectedCategoryId" class="filter-select">
+                    <select @bind="SelectedCategoryId" class="filter-select">
                         <option value="0">Todas las categorías</option>
-                        @foreach (var category in availableCategories)
+                        @foreach (var category in _availableCategories)
                         {
                             <option value="@category.Id">@category.Name</option>
                         }
@@ -409,7 +425,7 @@
                 
                 <div class="filter-group">
                     <label class="filter-label">Ordenar por:</label>
-                    <select @bind="sortBy" class="filter-select">
+                    <select @bind="SortBy" class="filter-select">
                         <option value="name">Nombre</option>
                         <option value="price-asc">Precio (menor a mayor)</option>
                         <option value="price-desc">Precio (mayor a menor)</option>
@@ -425,34 +441,34 @@
 
         <!-- Estadísticas -->
         <div class="stats-text">
-            <p>Mostrando @filteredProducts.Count productos de @totalProducts disponibles</p>
+            <p>Mostrando @_filteredProducts.Count productos de @_totalProducts disponibles</p>
         </div>
 
         <!-- Mensajes de notificación -->
-        @if (!string.IsNullOrEmpty(successMessage))
+        @if (!string.IsNullOrEmpty(_successMessage))
         {
             <div class="notification success">
-                ✓ @successMessage
+                ✓ @_successMessage
             </div>
         }
         
-        @if (!string.IsNullOrEmpty(errorMessage))
+        @if (!string.IsNullOrEmpty(_errorMessage))
         {
             <div class="notification error">
-                ⚠ @errorMessage
+                ⚠ @_errorMessage
             </div>
         }
 
-        @if (isLoading)
+        @if (_isLoading)
         {
             <div class="loading-state">
                 <p>Cargando productos...</p>
             </div>
         }
-        else if (filteredProducts.Any())
+        else if (_filteredProducts.Any())
         {
             <div class="products-grid">
-                @foreach (var product in filteredProducts)
+                @foreach (var product in _filteredProducts)
                 {
                     <div class="product-card">
                         <!-- Imagen del producto -->
@@ -501,31 +517,51 @@
                                 Vendido por: @product.Seller.FirstName @product.Seller.LastName
                             </div>
                             
-                            <!-- Botones de acción -->
+                            <!-- Botones de acción - Reemplaza la sección actual -->
                             @if (product.Stock > 0)
                             {
                                 <div class="product-actions">
-                                    <button class="btn-cart" @onclick="() => AddToCart(product)" disabled="@isAddingToCart">
-                                        @if (isAddingToCart && selectedProductId == product.Id)
-                                        {
-                                            <span>Agregando...</span>
-                                        }
-                                        else
-                                        {
-                                            <span>🛒 Al Carrito</span>
-                                        }
-                                    </button>
-                                    
-                                    <button class="btn-wishlist" @onclick="() => AddToWishlist(product)" disabled="@isAddingToWishlist">
-                                        @if (isAddingToWishlist && selectedProductId == product.Id)
-                                        {
-                                            <span>Agregando...</span>
-                                        }
-                                        else
-                                        {
-                                            <span>💖 Deseos</span>
-                                        }
-                                    </button>
+                                    <!-- Botón de Carrito -->
+                                    @if (IsInCart(product.Id))
+                                    {
+                                        <button class="btn-disabled" disabled>
+                                            ✓ En Carrito
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-cart" @onclick="() => AddToCart(product)" disabled="@_isAddingToCart">
+                                            @if (_isAddingToCart && _selectedProductId == product.Id)
+                                            {
+                                                <span>Agregando...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>🛒 Al Carrito</span>
+                                            }
+                                        </button>
+                                    }
+        
+                                    <!-- Botón de Wishlist -->
+                                    @if (IsInWishlist(product.Id))
+                                    {
+                                        <button class="btn-disabled" disabled>
+                                            ✓ En Deseos
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-wishlist" @onclick="() => AddToWishlist(product)" disabled="@_isAddingToWishlist">
+                                            @if (_isAddingToWishlist && _selectedProductId == product.Id)
+                                            {
+                                                <span>Agregando...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>💖 Deseos</span>
+                                            }
+                                        </button>
+                                    }
                                 </div>
                             }
                             else
@@ -552,16 +588,16 @@
         }
 
         <!-- Paginación -->
-        @if (filteredProducts.Count > itemsPerPage)
+        @if (_filteredProducts.Count > ItemsPerPage)
         {
             <div class="pagination">
-                <button @onclick="PreviousPage" disabled="@(currentPage <= 1)" class="pagination-btn">
+                <button @onclick="PreviousPage" disabled="@(_currentPage <= 1)" class="pagination-btn">
                     ← Anterior
                 </button>
                 
-                <span class="pagination-info">Página @currentPage de @totalPages</span>
+                <span class="pagination-info">Página @_currentPage de @_totalPages</span>
                 
-                <button @onclick="NextPage" disabled="@(currentPage >= totalPages)" class="pagination-btn">
+                <button @onclick="NextPage" disabled="@(_currentPage >= _totalPages)" class="pagination-btn">
                     Siguiente →
                 </button>
             </div>
@@ -570,64 +606,68 @@
 </div>
 
 @code {
-    private List<Product> allProducts = new();
-    private List<Product> filteredProducts = new();
-    private List<Category> availableCategories = new();
+    private List<Product> _allProducts = new();
+    private List<Product> _filteredProducts = new();
+    private List<Category> _availableCategories = new();
+    
+    // Nuevas propiedades para tracking
+    private HashSet<int> _productsInCart = new();
+    private HashSet<int> _productsInWishlist = new();
     
     // Filtros
     private string _searchTerm = string.Empty;
-    private string searchTerm
+    private string SearchTerm
     {
         get => _searchTerm;
         set
         {
             _searchTerm = value;
-            currentPage = 1;
+            _currentPage = 1;
             FilterAndSortProducts();
             StateHasChanged();
         }
     }
     
-    private int _selectedCategoryId = 0;
-    private int selectedCategoryId
+    private int _selectedCategoryId;
+    private int SelectedCategoryId
     {
         get => _selectedCategoryId;
         set
         {
             _selectedCategoryId = value;
-            currentPage = 1;
+            _currentPage = 1;
             FilterAndSortProducts();
             StateHasChanged();
         }
     }
     
     private string _sortBy = "name";
-    private string sortBy
+    private string SortBy
     {
         get => _sortBy;
         set
         {
             _sortBy = value;
-            currentPage = 1;
+            _currentPage = 1;
             FilterAndSortProducts();
             StateHasChanged();
         }
     }
     
     // Paginación
-    private int currentPage = 1;
-    private int itemsPerPage = 12;
-    private int totalProducts = 0;
-    private int totalPages = 1;
+    private int _currentPage = 1;
+    private const int ItemsPerPage = 12;
+    private int _totalProducts;
+    private int _totalPages = 1;
     
     // Estado
-    private bool isLoading = true;
-    private bool isAddingToCart = false;
-    private bool isAddingToWishlist = false;
-    private int selectedProductId = 0;
-    private string successMessage = string.Empty;
-    private string errorMessage = string.Empty;
-    private ApplicationUser? currentUser;
+    private bool _isLoading = true;
+    private bool _isAddingToCart;
+    private bool _isAddingToWishlist;
+    private int _selectedProductId;
+    private string _successMessage = string.Empty;
+    private string _errorMessage = string.Empty;
+    private ApplicationUser? _currentUser;
 
     protected override async Task OnInitializedAsync()
     {
@@ -637,13 +677,14 @@
         {
             using var scope = ServiceProvider.CreateScope();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            currentUser = await userManager.GetUserAsync(authState.User);
+            _currentUser = await userManager.GetUserAsync(authState.User);
         }
 
         await LoadProducts();
         await LoadCategories();
+        await LoadUserCartAndWishlist(); // Nueva función
         FilterAndSortProducts();
-        isLoading = false;
+        _isLoading = false;
     }
 
     private async Task LoadProducts()
@@ -651,14 +692,14 @@
         using var scope = ServiceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        allProducts = await dbContext.Products
+        _allProducts = await dbContext.Products
             .Include(p => p.Category)
             .Include(p => p.Seller)
             .Where(p => p.IsActive)
             .OrderBy(p => p.Name)
             .ToListAsync();
 
-        totalProducts = allProducts.Count;
+        _totalProducts = _allProducts.Count;
     }
 
     private async Task LoadCategories()
@@ -666,31 +707,54 @@
         using var scope = ServiceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        availableCategories = await dbContext.Categories
+        _availableCategories = await dbContext.Categories
             .Where(c => c.Products.Any(p => p.IsActive))
             .OrderBy(c => c.Name)
             .ToListAsync();
     }
 
+    // Nueva función para cargar carrito y wishlist del usuario
+    private async Task LoadUserCartAndWishlist()
+    {
+        if (_currentUser == null) return;
+
+        using var scope = ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        // Cargar productos en carrito
+        var cartProducts = await dbContext.CartItems
+            .Where(c => c.UserId == _currentUser.Id)
+            .Select(c => c.ProductId)
+            .ToListAsync();
+        _productsInCart = new HashSet<int>(cartProducts);
+
+        // Cargar productos en wishlist
+        var wishlistProducts = await dbContext.WishlistItems
+            .Where(w => w.UserId == _currentUser.Id)
+            .Select(w => w.ProductId)
+            .ToListAsync();
+        _productsInWishlist = new HashSet<int>(wishlistProducts);
+    }
+
     private void FilterAndSortProducts()
     {
-        var query = allProducts.AsEnumerable();
+        var query = _allProducts.AsEnumerable();
 
         // Filtro por búsqueda
-        if (!string.IsNullOrWhiteSpace(searchTerm))
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
-            query = query.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                    p.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+            query = query.Where(p => p.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                    p.Description.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase));
         }
 
         // Filtro por categoría
-        if (selectedCategoryId > 0)
+        if (SelectedCategoryId > 0)
         {
-            query = query.Where(p => p.CategoryId == selectedCategoryId);
+            query = query.Where(p => p.CategoryId == SelectedCategoryId);
         }
 
         // Ordenamiento
-        query = sortBy switch
+        query = SortBy switch
         {
             "price-asc" => query.OrderBy(p => p.Price),
             "price-desc" => query.OrderByDescending(p => p.Price),
@@ -698,15 +762,15 @@
             _ => query.OrderBy(p => p.Name)
         };
 
-        filteredProducts = query.ToList();
+        _filteredProducts = query.ToList();
         
         // Actualizar paginación
-        totalPages = (int)Math.Ceiling((double)filteredProducts.Count / itemsPerPage);
-        currentPage = Math.Min(currentPage, Math.Max(1, totalPages));
+        _totalPages = (int)Math.Ceiling((double)_filteredProducts.Count / ItemsPerPage);
+        _currentPage = Math.Min(_currentPage, Math.Max(1, _totalPages));
         
         // Aplicar paginación
-        var skip = (currentPage - 1) * itemsPerPage;
-        filteredProducts = filteredProducts.Skip(skip).Take(itemsPerPage).ToList();
+        var skip = (_currentPage - 1) * ItemsPerPage;
+        _filteredProducts = _filteredProducts.Skip(skip).Take(ItemsPerPage).ToList();
     }
 
     private void ClearFilters()
@@ -714,16 +778,16 @@
         _searchTerm = string.Empty;
         _selectedCategoryId = 0;
         _sortBy = "name";
-        currentPage = 1;
+        _currentPage = 1;
         FilterAndSortProducts();
         StateHasChanged();
     }
 
     private void PreviousPage()
     {
-        if (currentPage > 1)
+        if (_currentPage > 1)
         {
-            currentPage--;
+            _currentPage--;
             FilterAndSortProducts();
             StateHasChanged();
         }
@@ -731,29 +795,32 @@
 
     private void NextPage()
     {
-        if (currentPage < totalPages)
-        {
-            currentPage++;
-            FilterAndSortProducts();
-            StateHasChanged();
-        }
+        if (_currentPage >= _totalPages) return;
+        _currentPage++;
+        FilterAndSortProducts();
+        StateHasChanged();
     }
 
-    private void ViewProduct(int productId)
-    {
-        Navigation.NavigateTo($"/products/{productId}");
-    }
+    // Funciones auxiliares para verificar estado
+    private bool IsInCart(int productId) => _productsInCart.Contains(productId);
+    private bool IsInWishlist(int productId) => _productsInWishlist.Contains(productId);
 
     private async Task AddToCart(Product product)
     {
-        if (currentUser == null)
+        if (_currentUser == null)
         {
             Navigation.NavigateTo("/login");
             return;
         }
 
-        isAddingToCart = true;
-        selectedProductId = product.Id;
+        if (IsInCart(product.Id))
+        {
+            ShowErrorMessage($"{product.Name} ya está en tu carrito");
+            return;
+        }
+
+        _isAddingToCart = true;
+        _selectedProductId = product.Id;
         ClearMessages();
 
         try
@@ -761,31 +828,20 @@
             using var scope = ServiceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            // Verificar si ya está en el carrito
-            var existingCartItem = await dbContext.CartItems
-                .FirstOrDefaultAsync(c => c.UserId == currentUser.Id && c.ProductId == product.Id);
-
-            if (existingCartItem != null)
+            var cartItem = new CartItem
             {
-                // Incrementar cantidad
-                existingCartItem.Quantity++;
-                await dbContext.SaveChangesAsync();
-                ShowSuccessMessage($"Cantidad aumentada en el carrito: {product.Name}");
-            }
-            else
-            {
-                // Agregar nuevo item al carrito
-                var cartItem = new CartItem
-                {
-                    UserId = currentUser.Id,
-                    ProductId = product.Id,
-                    Quantity = 1
-                };
+                UserId = _currentUser.Id,
+                ProductId = product.Id,
+                Quantity = 1
+            };
 
-                dbContext.CartItems.Add(cartItem);
-                await dbContext.SaveChangesAsync();
-                ShowSuccessMessage($"Agregado al carrito: {product.Name}");
-            }
+            dbContext.CartItems.Add(cartItem);
+            await dbContext.SaveChangesAsync();
+            
+            // Actualizar el HashSet
+            _productsInCart.Add(product.Id);
+            
+            ShowSuccessMessage($"Agregado al carrito: {product.Name}");
         }
         catch (Exception)
         {
@@ -793,21 +849,27 @@
         }
         finally
         {
-            isAddingToCart = false;
-            selectedProductId = 0;
+            _isAddingToCart = false;
+            _selectedProductId = 0;
         }
     }
 
     private async Task AddToWishlist(Product product)
     {
-        if (currentUser == null)
+        if (_currentUser == null)
         {
             Navigation.NavigateTo("/login");
             return;
         }
 
-        isAddingToWishlist = true;
-        selectedProductId = product.Id;
+        if (IsInWishlist(product.Id))
+        {
+            ShowErrorMessage($"{product.Name} ya está en tu lista de deseos");
+            return;
+        }
+
+        _isAddingToWishlist = true;
+        _selectedProductId = product.Id;
         ClearMessages();
 
         try
@@ -815,27 +877,19 @@
             using var scope = ServiceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            // Verificar si ya está en la lista de deseos
-            var existingWishlistItem = await dbContext.WishlistItems
-                .FirstOrDefaultAsync(w => w.UserId == currentUser.Id && w.ProductId == product.Id);
-
-            if (existingWishlistItem != null)
+            var wishlistItem = new WishlistItem
             {
-                ShowErrorMessage("Este producto ya está en tu lista de deseos");
-            }
-            else
-            {
-                // Agregar a lista de deseos
-                var wishlistItem = new WishlistItem
-                {
-                    UserId = currentUser.Id,
-                    ProductId = product.Id
-                };
+                UserId = _currentUser.Id,
+                ProductId = product.Id
+            };
 
-                dbContext.WishlistItems.Add(wishlistItem);
-                await dbContext.SaveChangesAsync();
-                ShowSuccessMessage($"Agregado a lista de deseos: {product.Name}");
-            }
+            dbContext.WishlistItems.Add(wishlistItem);
+            await dbContext.SaveChangesAsync();
+            
+            // Actualizar el HashSet
+            _productsInWishlist.Add(product.Id);
+            
+            ShowSuccessMessage($"Agregado a lista de deseos: {product.Name}");
         }
         catch (Exception)
         {
@@ -843,42 +897,40 @@
         }
         finally
         {
-            isAddingToWishlist = false;
-            selectedProductId = 0;
+            _isAddingToWishlist = false;
+            _selectedProductId = 0;
         }
     }
 
     private void ShowSuccessMessage(string message)
     {
-        successMessage = message;
-        errorMessage = string.Empty;
+        _successMessage = message;
+        _errorMessage = string.Empty;
         StateHasChanged();
         
-        // Auto-ocultar después de 3 segundos
         Task.Delay(3000).ContinueWith(_ =>
         {
-            successMessage = string.Empty;
+            _successMessage = string.Empty;
             InvokeAsync(StateHasChanged);
         });
     }
 
     private void ShowErrorMessage(string message)
     {
-        errorMessage = message;
-        successMessage = string.Empty;
+        _errorMessage = message;
+        _successMessage = string.Empty;
         StateHasChanged();
         
-        // Auto-ocultar después de 3 segundos
         Task.Delay(3000).ContinueWith(_ =>
         {
-            errorMessage = string.Empty;
+            _errorMessage = string.Empty;
             InvokeAsync(StateHasChanged);
         });
     }
 
     private void ClearMessages()
     {
-        successMessage = string.Empty;
-        errorMessage = string.Empty;
+        _successMessage = string.Empty;
+        _errorMessage = string.Empty;
     }
 }

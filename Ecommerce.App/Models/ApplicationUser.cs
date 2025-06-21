@@ -7,16 +7,16 @@ namespace Ecommerce.App.Models
     {
         [Required]
         [StringLength(50)]
-        public string FirstName { get; set; } = string.Empty;
+        public string FirstName { get; init; } = string.Empty;
         
         [Required]
         [StringLength(50)]
-        public string LastName { get; set; } = string.Empty;
+        public string LastName { get; init; } = string.Empty;
         
         [Required]
-        public UserType UserType { get; set; } = UserType.Customer;
+        public UserType UserType { get; init; } = UserType.Customer;
         
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
         
         public string FullName => $"{FirstName} {LastName}";
     }
