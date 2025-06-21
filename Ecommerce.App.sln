@@ -1,0 +1,21 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ecommerce.App", "Ecommerce.App\Ecommerce.App.csproj", "{C1F19A17-6C7C-474C-94CE-24B89E19DBF5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BDD19303-3DCA-4F54-AB83-6EAC80892E00}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C1F19A17-6C7C-474C-94CE-24B89E19DBF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1F19A17-6C7C-474C-94CE-24B89E19DBF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1F19A17-6C7C-474C-94CE-24B89E19DBF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1F19A17-6C7C-474C-94CE-24B89E19DBF5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

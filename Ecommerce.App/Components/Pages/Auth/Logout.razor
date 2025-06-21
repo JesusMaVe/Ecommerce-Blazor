@@ -1,0 +1,24 @@
+@* Components/Pages/Auth/Logout.razor *@
+@page "/logout"
+@layout Components.Layout.MainLayout
+@using Microsoft.AspNetCore.Identity
+@using Ecommerce.App.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+<PageTitle>Cerrar Sesión - ECommerce</PageTitle>
+
+<div class="min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+        <p class="text-gray-600">Cerrando sesión...</p>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await SignInManager.SignOutAsync();
+        Navigation.NavigateTo("/", true);
+    }
+}

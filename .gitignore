@@ -1,0 +1,51 @@
+# Directorios de compilación
+bin/
+obj/
+
+# Archivos de configuración sensibles
+appsettings.Development.json
+appsettings.Production.json
+*.user
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+
+# Visual Studio / IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Docker
+.dockerignore
+compose.yaml
+Dockerfile
+
+# Base de datos local
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Archivos temporales
+*.tmp
+*.temp
+*~
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de respaldo
+*.bak
+*.backup
+
+# Entity Framework
+Migrations/

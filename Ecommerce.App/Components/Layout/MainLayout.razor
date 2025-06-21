@@ -1,0 +1,228 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Ecommerce.App.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inherits LayoutComponentBase
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Brand -->
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2">
+                       
+                        <h1 class="text-xl font-bold text-gray-900">CreatorMarket</h1>
+                    </a>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                        Inicio
+                    </a>
+                    <a href="/products" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                        Productos
+                    </a>
+                    
+                    <AuthorizeView>
+                        <Authorized>
+                            @if (currentUser?.UserType == UserType.Seller)
+                            {
+                                <a href="/seller/dashboard" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                                    Mi Tienda
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="/cart" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                                    Carrito
+                                </a>
+                                <a href="/wishlist" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                                    Lista de deseos
+                                </a>
+                            }
+                        </Authorized>
+                    </AuthorizeView>
+                </nav>
+
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <AuthorizeView>
+                        <Authorized>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-700">
+                                    Hola, <span class="font-medium">@currentUser?.FirstName</span>
+                                </span>
+                                <div class="relative group">                                                                                                                                                                                                                                                                
+                                    
+                                    <!-- Dropdown menu -->
+                                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
+                                        <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            Mi Perfil
+                                        </a>
+                                        @if (currentUser?.UserType == UserType.Seller)
+                                        {
+                                            <a href="/seller/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Dashboard Vendedor
+                                            </a>
+                                        }                                                                                                                                                       
+                                        else
+                                        {
+                                            <a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Mis Pedidos
+                                            </a>
+                                        }
+                                        <div class="border-t border-gray-100"></div>
+                                        <a href="/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-600">
+                                            Cerrar Sesión
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized>
+                            <div class="flex items-center space-x-3">
+                                <a href="/login" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                                    Iniciar Sesión
+                                </a>
+                                <a href="/register" class="bg-[#0D0D0D] text-white px-3 py-2 rounded-md font-semibold text-sm hover:bg-[#595959] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                    Registrarse
+                                </a>
+                            </div>
+                        </NotAuthorized>
+                    </AuthorizeView>
+
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden">
+                        <button @onclick="ToggleMobileMenu" class="text-gray-500 hover:text-gray-900 focus:outline-none">
+
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile menu -->
+            @if (showMobileMenu)
+            {
+                <div class="md:hidden border-t border-gray-200 py-3">
+                    <div class="space-y-2">
+                        <a href="/" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                            Inicio
+                        </a>
+                        <a href="/products" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                            Productos
+                        </a>
+                        
+                        <AuthorizeView>
+                            <Authorized>
+                                @if (currentUser?.UserType == UserType.Seller)
+                                {
+                                    <a href="/seller/dashboard" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                                        Mi Tienda
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a href="/cart" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                                        Carrito
+                                    </a>
+                                    <a href="/orders" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                                        Mis Pedidos
+                                    </a>
+                                    <a href="/wishlist" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                                        Lista de deseos
+                                    </a>
+                                    
+                                }
+                                <a href="/profile" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                                    Mi Perfil
+                                </a>
+                                <div class="border-t border-gray-200 mt-3 pt-3">
+                                    <a href="/logout" class="block px-3 py-2 text-base font-medium text-red-600 hover:text-red-800">
+                                        Cerrar Sesión
+                                    </a>
+                                </div>
+                            </Authorized>
+                            <NotAuthorized>
+                                <div class="border-t border-gray-200 mt-3 pt-3 space-y-2">
+                                    <a href="/login" class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900">
+                                        Iniciar Sesión
+                                    </a>
+                                    <a href="/register" class="block px-3 py-2 text-base font-medium bg-indigo-600 text-white rounded-md">
+                                        Registrarse
+                                    </a>
+                                </div>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                    </div>
+                </div>
+            }
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        @Body
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <span class="text-lg font-bold text-gray-900">ECommerce</span>
+                    </div>
+                    <p class="text-gray-500 text-sm">
+                        Tu plataforma de confianza para comprar y vender productos online de manera segura y sencilla.
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">Compañía</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/about" class="text-gray-500 hover:text-gray-900 text-sm">Acerca de</a></li>
+                        <li><a href="/contact" class="text-gray-500 hover:text-gray-900 text-sm">Contacto</a></li>
+                        <li><a href="/help" class="text-gray-500 hover:text-gray-900 text-sm">Ayuda</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">Legal</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/privacy" class="text-gray-500 hover:text-gray-900 text-sm">Privacidad</a></li>
+                        <li><a href="/terms" class="text-gray-500 hover:text-gray-900 text-sm">Términos</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-gray-200">
+                <p class="text-center text-gray-400 text-sm">
+                    © @DateTime.Now.Year ECommerce. Todos los derechos reservados.
+                </p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+@code {
+    private ApplicationUser? currentUser;
+    private bool showMobileMenu = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            currentUser = await UserManager.GetUserAsync(authState.User);
+        }
+    }
+
+    private void ToggleMobileMenu()
+    {
+        showMobileMenu = !showMobileMenu;
+    }
+}

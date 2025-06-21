@@ -1,0 +1,960 @@
+@page "/seller/dashboard"
+@layout Components.Layout.MainLayout
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Ecommerce.App.Models
+@using Ecommerce.App.Data
+@using Ecommerce.App.ViewModels
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IServiceProvider ServiceProvider
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard Vendedor - CreatorMarket</PageTitle>
+
+<style>
+    .dashboard-container {
+        min-height: 100vh;
+        background-color: #F2F2F2;
+        background-image: radial-gradient(circle at 1px 1px, rgba(13, 13, 13, 0.15) 1px, transparent 0);
+        background-size: 20px 20px;
+    }
+
+    .card {
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        padding: 2rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(191, 191, 191, 0.3);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .card:hover {
+        box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.35);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0;
+    }
+
+    .card-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0D0D0D;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .card-subtitle {
+        color: #737373;
+        font-size: 1.125rem;
+        margin: 0;
+    }
+
+    .stats-card {
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        padding: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(191, 191, 191, 0.3);
+        text-align: center;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .stats-card:hover {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: translateY(-4px);
+    }
+
+    .stats-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0D0D0D;
+        margin: 0.75rem 0 0.5rem;
+    }
+
+    .stats-label {
+        color: #737373;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    .icon-circle {
+        width: 3rem;
+        height: 3rem;
+        background-color: #0D0D0D;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .icon-circle.gray {
+        background-color: #595959;
+    }
+
+    .icon-circle.mediumgray {
+        background-color: #737373;
+    }
+
+    .icon-circle.lightgray {
+        background-color: #BFBFBF;
+    }
+
+    .btn-main {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        background-color: #0D0D0D;
+        color: white;
+        border: none;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        text-decoration: none;
+    }
+
+    .btn-main:hover {
+        background-color: #595959;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        background-color: rgba(255, 255, 255, 0.7);
+        color: #0D0D0D;
+        border: 2px solid #BFBFBF;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        text-decoration: none;
+    }
+
+    .btn-secondary:hover {
+        border-color: #737373;
+        background-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .btn-danger:hover {
+        background-color: #dc2626;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transform: translateY(-1px);
+    }
+
+    .btn-xs {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: none;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #0D0D0D;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #BFBFBF;
+        border-radius: 1rem;
+        background-color: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(4px);
+        color: #0D0D0D;
+        font-size: 0.875rem;
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: transparent;
+        box-shadow: 0 0 0 2px #0D0D0D;
+    }
+
+    .form-error {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .error-card {
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 1rem;
+        padding: 1rem;
+        color: #991b1b;
+        font-size: 0.875rem;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th {
+        text-align: left;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        color: #0D0D0D;
+        border-bottom: 2px solid #BFBFBF;
+    }
+
+    .table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(191, 191, 191, 0.5);
+        vertical-align: top;
+    }
+
+    .table tr:hover {
+        background-color: rgba(242, 242, 242, 0.5);
+    }
+
+    .th-center {
+        text-align: center;
+    }
+
+    .td-center {
+        text-align: center;
+    }
+
+    .td-bold {
+        font-weight: 600;
+        color: #0D0D0D;
+    }
+
+    .text-dark {
+        color: #0D0D0D;
+    }
+
+    .text-gray {
+        color: #595959;
+    }
+
+    .product-img {
+        width: 3rem;
+        height: 3rem;
+        object-fit: cover;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        background-color: #BFBFBF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .status-pill {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pill.inactive {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+</style>
+
+<div class="dashboard-container">
+@if (currentUser?.UserType != UserType.Seller)
+{
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="card text-center max-w-md">
+            <div class="icon-circle lightgray mx-auto mb-4">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <h3 class="card-title">Acceso Denegado</h3>
+            <p class="card-subtitle mb-6">Solo los vendedores pueden acceder a este panel.</p>
+            <a href="/" class="btn-main">Ir al inicio</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto space-y-6">
+
+            <!-- Header -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h1 class="card-title">Dashboard de Vendedor</h1>
+                        <p class="card-subtitle">Bienvenido, <span class="text-dark font-medium">@currentUser.FullName</span></p>
+                    </div>
+                    <div class="icon-circle">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="stats-card">
+                    <div class="icon-circle mx-auto mb-3">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="stats-value">@products.Count</h3>
+                    <p class="stats-label">Productos</p>
+                </div>
+                <div class="stats-card">
+                    <div class="icon-circle gray mx-auto mb-3">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                    </div>
+                    <h3 class="stats-value">@categories.Count</h3>
+                    <p class="stats-label">Categorías</p>
+                </div>
+                <div class="stats-card">
+                    <div class="icon-circle mediumgray mx-auto mb-3">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="stats-value">@products.Where(p => p.Stock > 0).Count()</h3>
+                    <p class="stats-label">En Stock</p>
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="card">
+                <h2 class="text-lg font-bold text-dark mb-4">Acciones Rápidas</h2>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button @onclick="ShowCreateCategory" class="btn-main flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Crear Categoría
+                    </button>
+                    <button @onclick="ShowCreateProduct" class="btn-secondary flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Crear Producto
+                    </button>
+                </div>
+            </div>
+
+            <!-- Crear Categoría -->
+            @if (showCreateCategory)
+            {
+                <div class="card">
+                    <h3 class="text-lg font-bold text-dark mb-4">Crear Nueva Categoría</h3>
+                    <EditForm Model="newCategory" OnValidSubmit="CreateCategory" FormName="CreateCategoryForm" class="space-y-4">
+                        <DataAnnotationsValidator />
+                        @if (!string.IsNullOrEmpty(categoryErrorMessage))
+                        {
+                            <div class="error-card">
+                                <p>@categoryErrorMessage</p>
+                            </div>
+                        }
+                        <div>
+                            <label class="form-label">Nombre:</label>
+                            <InputText @bind-Value="newCategory.Name" class="form-input" />
+                            <ValidationMessage For="@(() => newCategory.Name)" class="form-error" />
+                        </div>
+                        <div>
+                            <label class="form-label">Descripción:</label>
+                            <InputTextArea @bind-Value="newCategory.Description" class="form-input" />
+                            <ValidationMessage For="@(() => newCategory.Description)" class="form-error" />
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="submit" class="btn-main">Crear</button>
+                            <button type="button" @onclick="CancelCreateCategory" class="btn-secondary">Cancelar</button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+
+            <!-- Crear Producto -->
+            @if (showCreateProduct)
+            {
+                <div class="card">
+                    <h3 class="text-lg font-bold text-dark mb-4">Crear Nuevo Producto</h3>
+                    <EditForm Model="newProduct" OnValidSubmit="CreateProduct" FormName="CreateProductForm" class="space-y-4">
+                        <DataAnnotationsValidator />
+                        @if (!string.IsNullOrEmpty(productErrorMessage))
+                        {
+                            <div class="error-card">
+                                <p>@productErrorMessage</p>
+                            </div>
+                        }
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Nombre:</label>
+                                <InputText @bind-Value="newProduct.Name" class="form-input" />
+                                <ValidationMessage For="@(() => newProduct.Name)" class="form-error" />
+                            </div>
+                            <div>
+                                <label class="form-label">Categoría:</label>
+                                <InputSelect @bind-Value="newProduct.CategoryId" class="form-input">
+                                    <option value="0">Seleccionar categoría</option>
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category.Id">@category.Name</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => newProduct.CategoryId)" class="form-error" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Descripción:</label>
+                            <InputTextArea @bind-Value="newProduct.Description" class="form-input" />
+                            <ValidationMessage For="@(() => newProduct.Description)" class="form-error" />
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Precio:</label>
+                                <InputNumber @bind-Value="newProduct.Price" class="form-input" />
+                                <ValidationMessage For="@(() => newProduct.Price)" class="form-error" />
+                            </div>
+                            <div>
+                                <label class="form-label">Stock:</label>
+                                <InputNumber @bind-Value="newProduct.Stock" class="form-input" />
+                                <ValidationMessage For="@(() => newProduct.Stock)" class="form-error" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">URL de imagen (opcional):</label>
+                            <InputText @bind-Value="newProduct.ImageUrl" class="form-input" />
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="submit" class="btn-main">Crear</button>
+                            <button type="button" @onclick="CancelCreateProduct" class="btn-secondary">Cancelar</button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+
+            <!-- Editar Producto -->
+            @if (showEditProduct)
+            {
+                <div class="card">
+                    <h3 class="text-lg font-bold text-dark mb-4">Editar Producto</h3>
+                    <EditForm Model="editProduct" OnValidSubmit="UpdateProduct" FormName="EditProductForm" class="space-y-4">
+                        <DataAnnotationsValidator />
+                        @if (!string.IsNullOrEmpty(productErrorMessage))
+                        {
+                            <div class="error-card">
+                                <p>@productErrorMessage</p>
+                            </div>
+                        }
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Nombre:</label>
+                                <InputText @bind-Value="editProduct.Name" class="form-input" />
+                                <ValidationMessage For="@(() => editProduct.Name)" class="form-error" />
+                            </div>
+                            <div>
+                                <label class="form-label">Categoría:</label>
+                                <InputSelect @bind-Value="editProduct.CategoryId" class="form-input">
+                                    <option value="0">Seleccionar categoría</option>
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category.Id">@category.Name</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => editProduct.CategoryId)" class="form-error" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Descripción:</label>
+                            <InputTextArea @bind-Value="editProduct.Description" class="form-input" />
+                            <ValidationMessage For="@(() => editProduct.Description)" class="form-error" />
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="form-label">Precio:</label>
+                                <InputNumber @bind-Value="editProduct.Price" class="form-input" />
+                                <ValidationMessage For="@(() => editProduct.Price)" class="form-error" />
+                            </div>
+                            <div>
+                                <label class="form-label">Stock:</label>
+                                <InputNumber @bind-Value="editProduct.Stock" class="form-input" />
+                                <ValidationMessage For="@(() => editProduct.Stock)" class="form-error" />
+                            </div>
+                            <div>
+                                <label class="form-label">Estado:</label>
+                                <div class="flex items-center px-3 py-2 border border-[#BFBFBF] rounded-xl bg-white/70 backdrop-blur-sm">
+                                    <InputCheckbox @bind-Value="editProduct.IsActive" class="mr-2" />
+                                    <span class="text-sm text-dark">Activo</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">URL de imagen (opcional):</label>
+                            <InputText @bind-Value="editProduct.ImageUrl" class="form-input" />
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="submit" class="btn-main">Actualizar</button>
+                            <button type="button" @onclick="CancelEditProduct" class="btn-secondary">Cancelar</button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+
+            <!-- Lista de Categorías -->
+            <div class="card">
+                <h3 class="text-lg font-bold text-dark mb-4">Mis Categorías</h3>
+                @if (categories.Any())
+                {
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                    <th class="th-center">Productos</th>
+                                    <th class="th-center">Creada</th>
+                                    <th class="th-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var category in categories)
+                                {
+                                    <tr>
+                                        <td class="td-bold">@category.Name</td>
+                                        <td>@category.Description</td>
+                                        <td class="td-center text-gray">@category.Products.Count</td>
+                                        <td class="td-center text-gray">@category.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                        <td class="td-center">
+                                            @if (category.Products.Count == 0)
+                                            {
+                                                <button @onclick="() => DeleteCategory(category)" class="btn-danger btn-xs">Eliminar</button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-gray text-sm">Tiene productos</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-8">
+                        <div class="icon-circle lightgray mx-auto mb-3">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray mb-4">No tienes categorías creadas.</p>
+                        <button @onclick="ShowCreateCategory" class="btn-main">Crear primera categoría</button>
+                    </div>
+                }
+            </div>
+
+            <!-- Lista de Productos -->
+            <div class="card">
+                <h3 class="text-lg font-bold text-dark mb-4">Mis Productos</h3>
+                @if (products.Any())
+                {
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Imagen</th>
+                                    <th>Nombre</th>
+                                    <th>Categoría</th>
+                                    <th class="th-center">Precio</th>
+                                    <th class="th-center">Stock</th>
+                                    <th class="th-center">Estado</th>
+                                    <th class="th-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var product in products)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                            {
+                                                <img src="@product.ImageUrl" alt="@product.Name" class="product-img" />
+                                            }
+                                            else
+                                            {
+                                                <div class="product-img">
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </div>
+                                            }
+                                        </td>
+                                        <td class="td-bold">@product.Name</td>
+                                        <td>@product.Category.Name</td>
+                                        <td class="td-center td-bold">$@product.Price.ToString("N2")</td>
+                                        <td class="td-center text-gray">@product.Stock</td>
+                                        <td class="td-center">
+                                            <span class="status-pill @(product.IsActive ? "" : "inactive")">
+                                                @(product.IsActive ? "Activo" : "Inactivo")
+                                            </span>
+                                        </td>
+                                        <td class="td-center">
+                                            <div class="flex justify-center gap-2">
+                                                <button @onclick="() => ToggleProductStatus(product)"
+                                                    class="btn-xs"
+                                                    style="background: @(product.IsActive ? "#737373" : "#22c55e"); color: #fff;">
+                                                    @(product.IsActive ? "Desactivar" : "Activar")
+                                                </button>
+                                                <button @onclick="() => ShowEditProductForm(product)" class="btn-main btn-xs">Editar</button>
+                                                <button @onclick="() => DeleteProduct(product)" class="btn-danger btn-xs">Eliminar</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-8">
+                        <div class="icon-circle lightgray mx-auto mb-3">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray mb-4">No tienes productos creados.</p>
+                        <button @onclick="ShowCreateProduct" class="btn-main">Crear primer producto</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+@code {
+    private ApplicationUser? currentUser;
+    private List<Product> products = new();
+    private List<Category> categories = new();
+
+    private bool showCreateCategory = false;
+    private bool showCreateProduct = false;
+    private bool showEditProduct = false;
+    private CreateCategoryViewModel newCategory = new();
+    private CreateProductViewModel newProduct = new();
+    private EditProductViewModel editProduct = new();
+
+    private string categoryErrorMessage = string.Empty;
+    private string productErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            currentUser = await userManager.GetUserAsync(authState.User);
+
+            if (currentUser?.UserType == UserType.Seller)
+            {
+                await LoadData();
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private async Task LoadData()
+    {
+        if (currentUser == null) return;
+
+        using var scope = ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        categories = await dbContext.Categories
+            .Where(c => c.SellerId == currentUser.Id)
+            .Include(c => c.Products)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+
+        products = await dbContext.Products
+            .Where(p => p.SellerId == currentUser.Id)
+            .Include(p => p.Category)
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+    }
+
+    private void ShowCreateCategory()
+    {
+        showCreateCategory = true;
+        newCategory = new CreateCategoryViewModel();
+        categoryErrorMessage = string.Empty;
+    }
+
+    private void CancelCreateCategory()
+    {
+        showCreateCategory = false;
+        newCategory = new CreateCategoryViewModel();
+        categoryErrorMessage = string.Empty;
+    }
+
+    private async Task CreateCategory()
+    {
+        if (currentUser == null) return;
+
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var existingCategory = await dbContext.Categories
+                .FirstOrDefaultAsync(c => c.SellerId == currentUser.Id && c.Name == newCategory.Name);
+
+            if (existingCategory != null)
+            {
+                categoryErrorMessage = "Ya tienes una categoría con ese nombre.";
+                return;
+            }
+
+            var category = new Category
+            {
+                Name = newCategory.Name,
+                Description = newCategory.Description,
+                SellerId = currentUser.Id
+            };
+
+            dbContext.Categories.Add(category);
+            await dbContext.SaveChangesAsync();
+
+            await LoadData();
+            CancelCreateCategory();
+        }
+        catch (Exception)
+        {
+            categoryErrorMessage = "Error al crear la categoría.";
+        }
+    }
+
+    private async Task DeleteCategory(Category category)
+    {
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var categoryToDelete = await dbContext.Categories.FindAsync(category.Id);
+            if (categoryToDelete != null)
+            {
+                dbContext.Categories.Remove(categoryToDelete);
+                await dbContext.SaveChangesAsync();
+                await LoadData();
+            }
+        }
+        catch (Exception)
+        {
+            categoryErrorMessage = "Error al eliminar la categoría.";
+        }
+    }
+
+    private void ShowCreateProduct()
+    {
+        if (!categories.Any())
+        {
+            productErrorMessage = "Primero debes crear al menos una categoría.";
+            return;
+        }
+
+        showCreateProduct = true;
+        showEditProduct = false;
+        newProduct = new CreateProductViewModel();
+        productErrorMessage = string.Empty;
+    }
+
+    private void CancelCreateProduct()
+    {
+        showCreateProduct = false;
+        newProduct = new CreateProductViewModel();
+        productErrorMessage = string.Empty;
+    }
+
+    private void ShowEditProductForm(Product product)
+    {
+        showEditProduct = true;
+        showCreateProduct = false;
+        editProduct = new EditProductViewModel
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Price = product.Price,
+            Stock = product.Stock,
+            CategoryId = product.CategoryId,
+            ImageUrl = product.ImageUrl,
+            IsActive = product.IsActive
+        };
+        productErrorMessage = string.Empty;
+    }
+
+    private void CancelEditProduct()
+    {
+        showEditProduct = false;
+        editProduct = new EditProductViewModel();
+        productErrorMessage = string.Empty;
+    }
+
+    private async Task CreateProduct()
+    {
+        if (currentUser == null) return;
+
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var product = new Product
+            {
+                Name = newProduct.Name,
+                Description = newProduct.Description,
+                Price = newProduct.Price,
+                Stock = newProduct.Stock,
+                CategoryId = newProduct.CategoryId,
+                ImageUrl = newProduct.ImageUrl,
+                SellerId = currentUser.Id
+            };
+
+            dbContext.Products.Add(product);
+            await dbContext.SaveChangesAsync();
+
+            await LoadData();
+            CancelCreateProduct();
+        }
+        catch (Exception)
+        {
+            productErrorMessage = "Error al crear el producto.";
+        }
+    }
+
+    private async Task UpdateProduct()
+    {
+        if (currentUser == null) return;
+
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var product = await dbContext.Products.FindAsync(editProduct.Id);
+            if (product != null && product.SellerId == currentUser.Id)
+            {
+                product.Name = editProduct.Name;
+                product.Description = editProduct.Description;
+                product.Price = editProduct.Price;
+                product.Stock = editProduct.Stock;
+                product.CategoryId = editProduct.CategoryId;
+                product.ImageUrl = editProduct.ImageUrl;
+                product.IsActive = editProduct.IsActive;
+
+                await dbContext.SaveChangesAsync();
+                await LoadData();
+                CancelEditProduct();
+            }
+        }
+        catch (Exception)
+        {
+            productErrorMessage = "Error al actualizar el producto.";
+        }
+    }
+
+    private async Task DeleteProduct(Product product)
+    {
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var productToDelete = await dbContext.Products.FindAsync(product.Id);
+            if (productToDelete != null)
+            {
+                dbContext.Products.Remove(productToDelete);
+                await dbContext.SaveChangesAsync();
+                await LoadData();
+            }
+        }
+        catch (Exception)
+        {
+            productErrorMessage = "Error al eliminar el producto.";
+        }
+    }
+
+    private async Task ToggleProductStatus(Product product)
+    {
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var productToUpdate = await dbContext.Products.FindAsync(product.Id);
+            if (productToUpdate != null)
+            {
+                productToUpdate.IsActive = !productToUpdate.IsActive;
+                await dbContext.SaveChangesAsync();
+                await LoadData();
+            }
+        }
+        catch (Exception)
+        {
+            productErrorMessage = "Error al cambiar el estado del producto.";
+        }
+    }
+}

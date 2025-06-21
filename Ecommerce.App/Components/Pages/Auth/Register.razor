@@ -1,0 +1,162 @@
+@page "/register"
+@layout Components.Layout.MainLayout
+@using Microsoft.AspNetCore.Identity
+@using Ecommerce.App.Models
+@using Ecommerce.App.ViewModels
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+<PageTitle>Crear Cuenta - CreatorMarket</PageTitle>
+
+<div class="min-h-screen bg-[#F2F2F2] bg-[radial-gradient(circle_at_1px_1px,rgba(13,13,13,0.15)_1px,transparent_0)] bg-[length:20px_20px] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-[#0D0D0D] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-[#0D0D0D] mb-2">
+                Crear Cuenta
+            </h2>
+            <p class="text-[#737373]">
+                Únete a nuestra comunidad de creadores y fans
+            </p>
+        </div>
+        
+        <div class="bg-white/90 backdrop-blur-sm py-8 px-6 shadow-2xl rounded-3xl border border-[#BFBFBF]/30">
+            <EditForm Model="Input" OnValidSubmit="RegisterAsync" FormName="RegisterForm" class="space-y-6">
+                <DataAnnotationsValidator />
+                
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="bg-red-50 border border-red-200 rounded-2xl p-4 shadow-sm">
+                        <div class="flex">
+                            <svg class="h-5 w-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="ml-3 text-sm text-red-800">@errorMessage</p>
+                        </div>
+                    </div>
+                }
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="firstName" class="block text-sm font-semibold text-[#0D0D0D] mb-2">
+                            Nombre
+                        </label>
+                        <InputText @bind-Value="Input.FirstName" id="firstName"
+                                  class="appearance-none block w-full px-4 py-3 border border-[#BFBFBF] rounded-2xl placeholder-[#737373] focus:outline-none focus:ring-2 focus:ring-[#0D0D0D] focus:border-transparent bg-white/70 backdrop-blur-sm shadow-sm transition-all duration-200"
+                                  placeholder="Juan" />
+                        <ValidationMessage For="@(() => Input.FirstName)" class="text-red-600 text-sm mt-1" />
+                    </div>
+                    
+                    <div>
+                        <label for="lastName" class="block text-sm font-semibold text-[#0D0D0D] mb-2">
+                            Apellido
+                        </label>
+                        <InputText @bind-Value="Input.LastName" id="lastName"
+                                  class="appearance-none block w-full px-4 py-3 border border-[#BFBFBF] rounded-2xl placeholder-[#737373] focus:outline-none focus:ring-2 focus:ring-[#0D0D0D] focus:border-transparent bg-white/70 backdrop-blur-sm shadow-sm transition-all duration-200"
+                                  placeholder="Pérez" />
+                        <ValidationMessage For="@(() => Input.LastName)" class="text-red-600 text-sm mt-1" />
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="email" class="block text-sm font-semibold text-[#0D0D0D] mb-2">
+                        Correo electrónico
+                    </label>
+                    <InputText @bind-Value="Input.Email" id="email" type="email"
+                              class="appearance-none block w-full px-4 py-3 border border-[#BFBFBF] rounded-2xl placeholder-[#737373] focus:outline-none focus:ring-2 focus:ring-[#0D0D0D] focus:border-transparent bg-white/70 backdrop-blur-sm shadow-sm transition-all duration-200"
+                              placeholder="juan@email.com" />
+                    <ValidationMessage For="@(() => Input.Email)" class="text-red-600 text-sm mt-1" />
+                </div>
+                
+                <div>
+                    <label for="userType" class="block text-sm font-semibold text-[#0D0D0D] mb-2">
+                        Tipo de cuenta
+                    </label>
+                    <InputSelect @bind-Value="Input.UserType" id="userType"
+                               class="block w-full px-4 py-3 border border-[#BFBFBF] bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D0D0D] focus:border-transparent text-[#0D0D0D] transition-all duration-200">
+                        <option value="@UserType.Customer" class="text-[#0D0D0D]">Cliente - Quiero comprar productos</option>
+                        <option value="@UserType.Seller" class="text-[#0D0D0D]">Vendedor - Quiero vender productos</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Input.UserType)" class="text-red-600 text-sm mt-1" />
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-semibold text-[#0D0D0D] mb-2">
+                        Contraseña
+                    </label>
+                    <InputText @bind-Value="Input.Password" id="password" type="password"
+                              class="appearance-none block w-full px-4 py-3 border border-[#BFBFBF] rounded-2xl placeholder-[#737373] focus:outline-none focus:ring-2 focus:ring-[#0D0D0D] focus:border-transparent bg-white/70 backdrop-blur-sm shadow-sm transition-all duration-200"
+                              placeholder="Mínimo 6 caracteres" />
+                    <ValidationMessage For="@(() => Input.Password)" class="text-red-600 text-sm mt-1" />
+                </div>
+                
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-semibold text-[#0D0D0D] mb-2">
+                        Confirmar contraseña
+                    </label>
+                    <InputText @bind-Value="Input.ConfirmPassword" id="confirmPassword" type="password"
+                              class="appearance-none block w-full px-4 py-3 border border-[#BFBFBF] rounded-2xl placeholder-[#737373] focus:outline-none focus:ring-2 focus:ring-[#0D0D0D] focus:border-transparent bg-white/70 backdrop-blur-sm shadow-sm transition-all duration-200"
+                              placeholder="Repite tu contraseña" />
+                    <ValidationMessage For="@(() => Input.ConfirmPassword)" class="text-red-600 text-sm mt-1" />
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit"
+                           class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-[#0D0D0D] hover:bg-[#595959] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D0D0D] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <span>Crear Cuenta</span>
+                    </button>
+                </div>
+            </EditForm>
+            
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 bg-white/90 text-[#737373] font-medium">¿Ya tienes cuenta?</span>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <a href="/login" class="w-full flex justify-center py-3 px-4 border border-[#BFBFBF] rounded-2xl shadow-lg text-sm font-semibold text-[#0D0D0D] bg-white/70 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D0D0D] transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
+                        Iniciar sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string errorMessage = string.Empty;
+
+    [SupplyParameterFromForm]
+    private RegisterViewModel Input { get; set; } = new();
+
+    private async Task RegisterAsync()
+    {
+        var user = new ApplicationUser
+        {
+            UserName = Input.Email,
+            Email = Input.Email,
+            FirstName = Input.FirstName,
+            LastName = Input.LastName,
+            UserType = Input.UserType
+        };
+
+        var result = await UserManager.CreateAsync(user, Input.Password);
+
+        if (result.Succeeded)
+        {
+            await SignInManager.SignInAsync(user, isPersistent: false);
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            errorMessage = string.Join("; ", result.Errors.Select(e => e.Description));
+        }
+    }
+}

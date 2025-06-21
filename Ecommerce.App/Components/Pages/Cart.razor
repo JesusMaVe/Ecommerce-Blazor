@@ -1,0 +1,866 @@
+@page "/cart"
+@layout Components.Layout.MainLayout
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Ecommerce.App.Models
+@using Ecommerce.App.Data
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IServiceProvider ServiceProvider
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+<PageTitle>Mi Carrito - CreatorMarket</PageTitle>
+
+<style>
+    .cart-container {
+        min-height: 100vh;
+        background-color: #F2F2F2;
+        background-image: radial-gradient(circle at 1px 1px, rgba(13, 13, 13, 0.15) 1px, transparent 0);
+        background-size: 20px 20px;
+        padding: 2rem 1rem;
+    }
+
+    .cart-header {
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        padding: 2rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(191, 191, 191, 0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .cart-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #0D0D0D;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .cart-subtitle {
+        color: #737373;
+        font-size: 1.125rem;
+        margin: 0;
+    }
+
+    .loading-card {
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        padding: 3rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(191, 191, 191, 0.3);
+        text-align: center;
+    }
+
+    .loading-icon {
+        width: 4rem;
+        height: 4rem;
+        background-color: #0D0D0D;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        animation: pulse 2s infinite;
+    }
+    
+    .cart-items-card {
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        padding: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(191, 191, 191, 0.3);
+    }
+
+    .cart-items-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0D0D0D;
+        margin-bottom: 1.5rem;
+    }
+
+    .cart-item {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid rgba(191, 191, 191, 0.3);
+        padding: 1.5rem 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 1rem;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .cart-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .cart-item:hover {
+        background-color: rgba(242, 242, 242, 0.3);
+    }
+
+    .product-image {
+        width: 6rem;
+        height: 6rem;
+        background-color: rgba(191, 191, 191, 0.2);
+        border-radius: 1rem;
+        margin-right: 1.5rem;
+        flex-shrink: 0;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-info {
+        flex-grow: 1;
+    }
+
+    .product-name {
+        font-weight: 700;
+        font-size: 1.125rem;
+        color: #0D0D0D;
+        margin-bottom: 0.5rem;
+    }
+
+    .product-category {
+        color: #595959;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        background-color: rgba(191, 191, 191, 0.2);
+        border-radius: 9999px;
+        display: inline-block;
+    }
+
+    .product-seller {
+        color: #737373;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .product-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0D0D0D;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0 1.5rem;
+    }
+
+    .quantity-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        background-color: rgba(191, 191, 191, 0.3);
+        border: none;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1.125rem;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .quantity-btn:hover:not(:disabled) {
+        background-color: #595959;
+        color: white;
+    }
+
+    .quantity-btn.increase:hover:not(:disabled) {
+        background-color: #0D0D0D;
+        color: white;
+    }
+
+    .quantity-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .quantity-display {
+        padding: 0.5rem 1rem;
+        background-color: #F2F2F2;
+        border-radius: 1rem;
+        text-align: center;
+        min-width: 3.75rem;
+        font-weight: 600;
+        color: #0D0D0D;
+    }
+
+    .item-total {
+        text-align: right;
+    }
+
+    .item-total-price {
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: #0D0D0D;
+        margin-bottom: 0.5rem;
+    }
+
+    .remove-btn {
+        color: #ef4444;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        background: none;
+        border: none;
+    }
+
+    .remove-btn:hover {
+        color: #dc2626;
+        text-decoration: underline;
+    }
+
+    .cart-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(191, 191, 191, 0.3);
+    }
+
+    .btn-clear-cart {
+        padding: 0.75rem 1.5rem;
+        color: #ef4444;
+        background: none;
+        border: none;
+        border-radius: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-clear-cart:hover {
+        color: #dc2626;
+        background-color: rgba(239, 68, 68, 0.1);
+    }
+
+    .btn-continue {
+        padding: 0.75rem 1.5rem;
+        background-color: rgba(255, 255, 255, 0.7);
+        color: #0D0D0D;
+        border: 2px solid #BFBFBF;
+        border-radius: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-continue:hover {
+        border-color: #737373;
+        background-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(-1px);
+    }
+
+    .summary-card {
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        padding: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(191, 191, 191, 0.3);
+        position: sticky;
+        top: 1rem;
+    }
+
+    .summary-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0D0D0D;
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+    }
+
+    .summary-label {
+        color: #737373;
+    }
+
+    .summary-value {
+        font-weight: 600;
+        color: #0D0D0D;
+    }
+
+    .shipping-notice {
+        padding: 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        margin: 1rem 0;
+        border: 1px solid;
+    }
+
+    .shipping-notice.free {
+        background-color: rgba(34, 197, 94, 0.1);
+        color: #166534;
+        border-color: rgba(34, 197, 94, 0.2);
+    }
+
+    .shipping-notice.threshold {
+        background-color: rgba(251, 191, 36, 0.1);
+        color: #92400e;
+        border-color: rgba(251, 191, 36, 0.2);
+    }
+
+    .summary-divider {
+        border: none;
+        border-top: 1px solid rgba(191, 191, 191, 0.3);
+        margin: 1rem 0;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        padding: 0.5rem 0;
+        color: #0D0D0D;
+    }
+
+    .btn-checkout {
+        width: 100%;
+        background-color: #0D0D0D;
+        color: white;
+        padding: 1rem 1.5rem;
+        border: none;
+        border-radius: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 2rem;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-checkout:hover:not(:disabled) {
+        background-color: #595959;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(-1px);
+    }
+
+    .btn-checkout:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .wishlist-link {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+
+    .wishlist-link a {
+        color: #595959;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .wishlist-link a:hover {
+        color: #0D0D0D;
+        text-decoration: underline;
+    }
+
+    .empty-cart {
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        padding: 4rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(191, 191, 191, 0.3);
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 6rem;
+        height: 6rem;
+        background-color: #BFBFBF;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+    }
+
+    .empty-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0D0D0D;
+        margin-bottom: 1rem;
+    }
+
+    .empty-description {
+        color: #737373;
+        margin-bottom: 2rem;
+        font-size: 1.125rem;
+    }
+
+    .empty-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .btn-primary {
+        display: inline-block;
+        background-color: #0D0D0D;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary:hover {
+        background-color: #595959;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        transform: translateY(-1px);
+    }
+
+    .notification {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        padding: 1rem;
+        border-radius: 1rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        z-index: 1000;
+        backdrop-filter: blur(8px);
+        font-weight: 600;
+    }
+
+    .notification.success {
+        background-color: rgba(34, 197, 94, 0.9);
+        color: white;
+    }
+
+    .notification.error {
+        background-color: rgba(239, 68, 68, 0.9);
+        color: white;
+    }
+
+    .notification-content {
+        display: flex;
+        align-items: center;
+    }
+
+    .notification-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-right: 0.5rem;
+    }
+    
+
+  
+</style>
+
+<div class="cart-container">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="cart-header">
+            <h1 class="cart-title">Mi Carrito de Compras</h1>
+            <p class="cart-subtitle">CreatorMarket</p>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="loading-card">
+                <div class="loading-icon">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5M7 13v6a1 1 0 001 1h9a1 1 0 001-1v-6m-10 0h10"></path>
+                    </svg>
+                </div>
+                <p class="text-[#737373] text-lg">Cargando carrito...</p>
+            </div>
+        }
+        else if (cartItems.Any())
+        {
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 cart-grid">
+                <!-- Items del Carrito -->
+                <div class="lg:col-span-2">
+                    <div class="cart-items-card">
+                        <h2 class="cart-items-title">Productos en tu carrito (@cartItems.Count items)</h2>
+                        
+                        @foreach (var item in cartItems)
+                        {
+                            <div class="cart-item">
+                                <!-- Imagen del producto -->
+                                <div class="product-image">
+                                    @if (!string.IsNullOrEmpty(item.Product.ImageUrl))
+                                    {
+                                        <img src="@item.Product.ImageUrl" alt="@item.Product.Name" />
+                                    }
+                                    else
+                                    {
+                                        <svg class="w-8 h-8 text-[#737373]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    }
+                                </div>
+                                
+                                <!-- Información del producto -->
+                                <div class="product-info">
+                                    <h3 class="product-name">@item.Product.Name</h3>
+                                    <p class="product-category">@item.Product.Category.Name</p>
+                                    <p class="product-seller">Vendido por: @item.Product.Seller.FirstName @item.Product.Seller.LastName</p>
+                                    <p class="product-price">$@item.Product.Price.ToString("N2")</p>
+                                </div>
+                                
+                                <!-- Controles de cantidad -->
+                                <div class="quantity-controls">
+                                    <button @onclick="() => DecreaseQuantity(item)" class="quantity-btn">
+                                        −
+                                    </button>
+                                    <span class="quantity-display">@item.Quantity</span>
+                                    <button @onclick="() => IncreaseQuantity(item)" 
+                                            class="quantity-btn increase @(item.Quantity >= item.Product.Stock ? "opacity-50 cursor-not-allowed" : "")"
+                                            disabled="@(item.Quantity >= item.Product.Stock)">
+                                        +
+                                    </button>
+                                </div>
+                                
+                                <!-- Total del item -->
+                                <div class="item-total">
+                                    <p class="item-total-price">$@((item.Product.Price * item.Quantity).ToString("N2"))</p>
+                                    <button @onclick="() => RemoveFromCart(item)" class="remove-btn">
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                        
+                        <!-- Acciones del carrito -->
+                        <div class="cart-actions">
+                            <button @onclick="ClearCart" class="btn-clear-cart">
+                                Vaciar carrito
+                            </button>
+                            <a href="/products" class="btn-continue">
+                                Continuar comprando
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resumen del pedido -->
+                <div class="lg:col-span-1">
+                    <div class="summary-card">
+                        <h2 class="summary-title">Resumen del pedido</h2>
+                        
+                        <div>
+                            <div class="summary-row">
+                                <span class="summary-label">Subtotal (@totalItems items):</span>
+                                <span class="summary-value">$@subtotal.ToString("N2")</span>
+                            </div>
+                            
+                            <div class="summary-row">
+                                <span class="summary-label">Envío:</span>
+                                <span class="summary-value">@(subtotal >= 100 ? "GRATIS" : "$15.00")</span>
+                            </div>
+                            
+                            @if (subtotal >= 100)
+                            {
+                                <div class="shipping-notice free">
+                                    ✓ Envío gratuito en pedidos superiores a $100
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="shipping-notice threshold">
+                                    Agrega $@((100 - subtotal).ToString("N2")) más para envío gratuito
+                                </div>
+                            }
+                            
+                            <hr class="summary-divider" />
+                            
+                            <div class="summary-total">
+                                <span>Total:</span>
+                                <span>$@total.ToString("N2")</span>
+                            </div>
+                        </div>
+                        
+                        <button @onclick="ProceedToCheckout" 
+                                class="btn-checkout @(!cartItems.Any() ? "opacity-50 cursor-not-allowed" : "")"
+                                disabled="@(!cartItems.Any())">
+                            Proceder al pago
+                        </button>
+                        
+                        <div class="wishlist-link">
+                            <a href="/wishlist">Ver mi lista de deseos</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Carrito vacío -->
+            <div class="empty-cart">
+                <div class="empty-icon">
+                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5M7 13v6a1 1 0 001 1h9a1 1 0 001-1v-6m-10 0h10"></path>
+                    </svg>
+                </div>
+                <h2 class="empty-title">Tu carrito está vacío</h2>
+                <p class="empty-description">¡Explora nuestros productos y encuentra algo que te guste!</p>
+                
+                <div class="empty-actions">
+                    <a href="/products" class="btn-primary">
+                        Ver productos
+                    </a>
+                    <a href="/wishlist" class="wishlist-link">
+                        <span>Ver mi lista de deseos</span>
+                    </a>
+                </div>
+            </div>
+        }
+
+        <!-- Mensajes de notificación -->
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="notification success">
+                <div class="notification-content">
+                    <svg class="notification-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    @successMessage
+                </div>
+            </div>
+        }
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="notification error">
+                <div class="notification-content">
+                    <svg class="notification-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    @errorMessage
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private ApplicationUser? currentUser;
+    private List<CartItem> cartItems = new();
+    private bool isLoading = true;
+    private string successMessage = string.Empty;
+    private string errorMessage = string.Empty;
+    
+    // Calculados
+    private int totalItems => cartItems.Sum(c => c.Quantity);
+    private decimal subtotal => cartItems.Sum(c => c.Product.Price * c.Quantity);
+    private decimal shippingCost => subtotal >= 100 ? 0 : 15;
+    private decimal total => subtotal + shippingCost;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            currentUser = await userManager.GetUserAsync(authState.User);
+            
+            if (currentUser != null)
+            {
+                await LoadCartItems();
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+        
+        isLoading = false;
+    }
+
+    private async Task LoadCartItems()
+    {
+        if (currentUser == null) return;
+
+        using var scope = ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        cartItems = await dbContext.CartItems
+            .Include(c => c.Product)
+                .ThenInclude(p => p.Category)
+            .Include(c => c.Product)
+                .ThenInclude(p => p.Seller)
+            .Where(c => c.UserId == currentUser.Id)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync();
+    }
+
+    private async Task IncreaseQuantity(CartItem item)
+    {
+        if (item.Quantity >= item.Product.Stock)
+        {
+            ShowErrorMessage("No hay suficiente stock disponible");
+            return;
+        }
+
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            
+            var cartItem = await dbContext.CartItems.FindAsync(item.Id);
+            if (cartItem != null)
+            {
+                cartItem.Quantity++;
+                await dbContext.SaveChangesAsync();
+                
+                item.Quantity++;
+                StateHasChanged();
+            }
+        }
+        catch (Exception)
+        {
+            ShowErrorMessage("Error al actualizar la cantidad");
+        }
+    }
+
+    private async Task DecreaseQuantity(CartItem item)
+    {
+        if (item.Quantity <= 1)
+        {
+            await RemoveFromCart(item);
+            return;
+        }
+
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            
+            var cartItem = await dbContext.CartItems.FindAsync(item.Id);
+            if (cartItem != null)
+            {
+                cartItem.Quantity--;
+                await dbContext.SaveChangesAsync();
+                
+                item.Quantity--;
+                StateHasChanged();
+            }
+        }
+        catch (Exception)
+        {
+            ShowErrorMessage("Error al actualizar la cantidad");
+        }
+    }
+
+    private async Task RemoveFromCart(CartItem item)
+    {
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            
+            var cartItem = await dbContext.CartItems.FindAsync(item.Id);
+            if (cartItem != null)
+            {
+                dbContext.CartItems.Remove(cartItem);
+                await dbContext.SaveChangesAsync();
+                
+                cartItems.Remove(item);
+                ShowSuccessMessage($"Producto eliminado del carrito: {item.Product.Name}");
+                StateHasChanged();
+            }
+        }
+        catch (Exception)
+        {
+            ShowErrorMessage("Error al eliminar el producto");
+        }
+    }
+
+    private async Task ClearCart()
+    {
+        if (!cartItems.Any()) return;
+
+        try
+        {
+            using var scope = ServiceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            
+            var userCartItems = await dbContext.CartItems
+                .Where(c => c.UserId == currentUser!.Id)
+                .ToListAsync();
+                
+            dbContext.CartItems.RemoveRange(userCartItems);
+            await dbContext.SaveChangesAsync();
+            
+            cartItems.Clear();
+            ShowSuccessMessage("Carrito vaciado completamente");
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+            ShowErrorMessage("Error al vaciar el carrito");
+        }
+    }
+
+    private void ProceedToCheckout()
+    {
+        // TODO: Implementar proceso de checkout
+        ShowSuccessMessage("Función de pago próximamente disponible");
+    }
+
+    private void ShowSuccessMessage(string message)
+    {
+        successMessage = message;
+        errorMessage = string.Empty;
+        StateHasChanged();
+        
+        Task.Delay(3000).ContinueWith(_ =>
+        {
+            successMessage = string.Empty;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private void ShowErrorMessage(string message)
+    {
+        errorMessage = message;
+        successMessage = string.Empty;
+        StateHasChanged();
+        
+        Task.Delay(3000).ContinueWith(_ =>
+        {
+            errorMessage = string.Empty;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+}

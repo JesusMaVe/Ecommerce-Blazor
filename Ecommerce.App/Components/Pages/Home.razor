@@ -1,0 +1,110 @@
+﻿@page "/"
+@layout Components.Layout.MainLayout
+
+<PageTitle>CreatorMarket - Productos de tus Creadores Favoritos</PageTitle>
+
+<div class="min-h-screen bg-[#F2F2F2] bg-[radial-gradient(circle_at_1px_1px,rgba(13,13,13,0.15)_1px,transparent_0)] bg-[length:20px_20px]">
+    <!-- Hero Section -->
+    <section class="relative py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto text-center">
+            <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl border border-[#BFBFBF]/20">
+                <h1 class="text-5xl md:text-7xl font-bold text-[#0D0D0D] mb-6 leading-tight">
+                    Creator<span class="text-[#595959]">Market</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-[#737373] mb-8 max-w-3xl mx-auto leading-relaxed">
+                    Descubre productos únicos de tus <strong>YouTubers</strong>, <strong>Streamers</strong> y <strong>Creadores de contenido</strong> favoritos
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/products" class="bg-[#0D0D0D] text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-[#595959] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        Explorar Productos
+                    </a>
+                    <a href="/register" class="bg-white text-[#0D0D0D] px-8 py-4 rounded-2xl font-semibold text-lg border-2 border-[#BFBFBF] hover:border-[#737373] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        Únete Ahora
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-[#0D0D0D] mb-4">¿Por qué CreatorMarket?</h2>
+                <p class="text-xl text-[#737373] max-w-2xl mx-auto">Conectamos a creadores con sus fans a través de productos únicos y experiencias exclusivas</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-[#BFBFBF]/20 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-[#0D0D0D] rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-[#0D0D0D] mb-4">Para YouTubers</h3>
+                    <p class="text-[#737373] leading-relaxed">Monetiza tu contenido con productos personalizados. Desde merchandise hasta cursos exclusivos.</p>
+                </div>
+                
+                <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-[#BFBFBF]/20 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-[#595959] rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-[#0D0D0D] mb-4">Para Streamers</h3>
+                    <p class="text-[#737373] leading-relaxed">Vende productos gaming, setup guides y experiencias interactivas con tu comunidad.</p>
+                </div>
+                
+                <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-[#BFBFBF]/20 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                    <div class="w-16 h-16 bg-[#737373] rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-[#0D0D0D] mb-4">Para Fans</h3>
+                    <p class="text-[#737373] leading-relaxed">Accede a productos exclusivos y apoya directamente a tus creadores favoritos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="bg-[#0D0D0D] rounded-3xl p-12 text-center shadow-2xl">
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div>
+                        <div class="text-4xl font-bold text-white mb-2">1000+</div>
+                        <div class="text-[#BFBFBF] text-lg">Creadores Activos</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold text-white mb-2">50K+</div>
+                        <div class="text-[#BFBFBF] text-lg">Productos Vendidos</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold text-white mb-2">25K+</div>
+                        <div class="text-[#BFBFBF] text-lg">Usuarios Registrados</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl border border-[#BFBFBF]/20">
+                <h2 class="text-4xl font-bold text-[#0D0D0D] mb-6">¿Listo para empezar?</h2>
+                <p class="text-xl text-[#737373] mb-8">Únete a la comunidad de creadores y fans más grande de Latinoamérica</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/register?type=seller" class="bg-[#0D0D0D] text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-[#595959] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        Soy Creador
+                    </a>
+                    <a href="/register?type=customer" class="bg-white text-[#0D0D0D] px-8 py-4 rounded-2xl font-semibold text-lg border-2 border-[#BFBFBF] hover:border-[#737373] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        Soy Fan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
