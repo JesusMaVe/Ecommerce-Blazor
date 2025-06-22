@@ -1,0 +1,31 @@
+﻿services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ecommerce-sqlserver
+    environment:
+      SA_PASSWORD: "Contra123#"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  ecommerce.app:
+    image: ecommerce.app
+    build:
+      context: .
+      dockerfile: Ecommerce.App/Dockerfile
+    container_name: ecommerce-app
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=EcommerceDB;User Id=sa;Password=Contra123#;TrustServerCertificate=true;
+    depends_on:
+      - sqlserver
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
