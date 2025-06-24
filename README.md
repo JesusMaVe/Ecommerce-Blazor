@@ -4,8 +4,7 @@
 
 # Video Explicativo
 
-https://drive.google.com/file/d/1XdQy80HrhlJvxwz67mshUhloPp09rSZD/view?usp=sharing
-
+https://drive.google.com/file/d/1AUOVuW8HGVovedzN5ACRlbDcGsQhNuzS/view?usp=sharing
 ---
 ## 📋 Información General del Proyecto
 
