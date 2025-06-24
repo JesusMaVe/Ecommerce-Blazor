@@ -1,5 +1,12 @@
 # Documentación Técnica - ECommerce Blazor
 
+---
+
+# Video Explicativo
+
+https://drive.google.com/file/d/1XdQy80HrhlJvxwz67mshUhloPp09rSZD/view?usp=sharing
+
+---
 ## 📋 Información General del Proyecto
 
 - **Nombre**: CreatorMarket - Plataforma de ECommerce
